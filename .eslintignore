@@ -1,0 +1,9 @@
+/.quasar
+/dist
+/node_modules
+/src-capacitor
+/src-cordova
+/src-fastify
+/src-ssr
+.eslintrc.js
+/quasar.config.*.temporary.compiled*
