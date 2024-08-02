@@ -34,8 +34,8 @@ const buildConfig = {
   },
   target: 'node',
   entry: {
-    reviewManager: path.resolve('src/processes/reviewManagerProcess/index.ts'),
-    fileWatch: path.resolve('src/processes/fileWatchProcess/index.ts'),
+    reviewManagerProcess: path.resolve('src/processes/reviewManagerProcess/index.ts'),
+    fileWatchProcess: path.resolve('src/processes/fileWatchProcess/index.ts'),
   },
   output: {
     path: path.resolve('dist'),

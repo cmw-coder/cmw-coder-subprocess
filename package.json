@@ -6,12 +6,11 @@
   "scripts": {
     "build": "webpack && tsc && tsc-alias"
   },
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.cjs",
-      "require": "./dist/index.umd.cjs"
+      "require": "./dist/index.cjs"
     },
     "./reviewManagerProcess": {
       "require": "./dist/reviewManagerProcess.cjs"

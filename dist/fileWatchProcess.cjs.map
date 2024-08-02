@@ -1,0 +1,1 @@
+{"version":3,"file":"fileWatchProcess.cjs","mappings":";;;;;;AAAa;AACb,8CAA6C,EAAE,aAAa,EAAC;AAC7D;AACA;AACA;AACA,oBAAoB,SAAS;AAC7B,wBAAwB,iBAAiB;AACzC;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA;AACA,kBAAe","sources":["webpack://cmw-coder-subprocess/./src/processes/fileWatchProcess/index.ts"],"names":[],"sourceRoot":""}
