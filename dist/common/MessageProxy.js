@@ -71,7 +71,7 @@ class MessageToMasterProxy {
 exports.MessageToMasterProxy = MessageToMasterProxy;
 // 在主进程实例化，用于接受子进程消息
 class MessageToChildProxy {
-    constructor(scriptPath) {
+    constructor(scriptPath, argv) {
         this.scriptPath = scriptPath;
         this.promiseMap = new Map();
         this.proxyFn = new Proxy({}, {
@@ -80,7 +80,7 @@ class MessageToChildProxy {
                 data: payloads,
             }),
         });
-        this.childProcess = (0, child_process_1.fork)(this.scriptPath, {
+        this.childProcess = (0, child_process_1.fork)(this.scriptPath, [`--historyDir=${argv.historyDir}`], {
             ...process.env,
             // @ts-ignore
             ELECTRON_RUN_AS_NODE: '',

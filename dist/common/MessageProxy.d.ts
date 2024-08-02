@@ -1,3 +1,4 @@
+import { ReviewProcessArgv } from '../types/argv';
 export interface processMessage {
     id?: string;
     key?: string;
@@ -19,7 +20,7 @@ export declare class MessageToChildProxy<T = {
     private childProcess;
     private promiseMap;
     proxyFn: T;
-    constructor(scriptPath: string);
+    constructor(scriptPath: string, argv: ReviewProcessArgv);
     private sendMessage;
     private receivedMessage;
 }
