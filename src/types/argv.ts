@@ -1,4 +1,4 @@
-export interface ProcessArgv {
+export interface ReviewProcessArgv {
   targetDir?: string;
   historyDir: string;
 }

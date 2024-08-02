@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ChildProcess, fork } from 'child_process';
+import { ReviewProcessArgv } from 'types/argv';
 
 export interface processMessage {
   id?: string;
@@ -104,13 +105,20 @@ export class MessageToChildProxy<
     },
   ) as T;
 
-  constructor(private scriptPath: string) {
-    this.childProcess = fork(this.scriptPath, {
-      ...process.env,
-      // @ts-ignore
-      ELECTRON_RUN_AS_NODE: '',
-      useNodeIpc: '',
-    });
+  constructor(
+    private scriptPath: string,
+    argv: ReviewProcessArgv,
+  ) {
+    this.childProcess = fork(
+      this.scriptPath,
+      [`--historyDir=${argv.historyDir}`],
+      {
+        ...process.env,
+        // @ts-ignore
+        ELECTRON_RUN_AS_NODE: '',
+        useNodeIpc: '',
+      },
+    );
     console.log(`[${this.childProcess.pid}]  ${scriptPath}`);
     this.childProcess.on('close', (code) => {
       console.log(`[${this.childProcess.pid}]  exit with code ${code}`);

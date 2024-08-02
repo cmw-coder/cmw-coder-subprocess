@@ -5,14 +5,14 @@ import {
 } from 'types/ReviewHandler';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { ProcessArgv } from 'types/argv';
+import { ReviewProcessArgv } from 'types/argv';
 import { LocalReviewHistoryManager } from 'common/LocalReviewHistoryManager';
 import { ReviewInstance } from 'processes/reviewManagerProcess/ReviewInstance';
 import { ReviewData, ReviewFileItem, ReviewState } from 'types/review';
 
 const MAX_RUNNING_REVIEW_COUNT = 10;
 
-const argv = yargs(hideBin(process.argv)).argv as unknown as ProcessArgv;
+const argv = yargs(hideBin(process.argv)).argv as unknown as ReviewProcessArgv;
 
 class ReviewProcess
   extends MessageToMasterProxy<ReviewMasterHandler>
