@@ -2,23 +2,12 @@
   "name": "cmw-coder-subprocess",
   "private": true,
   "version": "0.0.1",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "build": "webpack && tsc && tsc-alias"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "require": "./dist/index.js"
-    },
-    "./reviewManagerProcess": {
-      "require": "./dist/reviewManagerProcess.cjs"
-    },
-    "./fileWatchProcess": {
-      "require": "./dist/fileWatchProcess.cjs"
-    }
-  },
   "devDependencies": {
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.0.2",
