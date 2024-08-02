@@ -10,6 +10,7 @@
       "request/*": ["src/request/*"],
       "processes/*": ["src/processes/*"]
     },
+    "outDir": "dist",
     "declaration": true,
 
     /* Bundler mode */

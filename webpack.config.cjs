@@ -34,7 +34,6 @@ const buildConfig = {
   },
   target: 'node',
   entry: {
-    index: path.resolve('src/index.ts'),
     reviewManager: path.resolve('src/processes/reviewManagerProcess/index.ts'),
     fileWatch: path.resolve('src/processes/fileWatchProcess/index.ts'),
   },
