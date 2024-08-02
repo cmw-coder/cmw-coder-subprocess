@@ -1,3 +1,5 @@
+import { Range } from "types/master";
+
 export enum SymbolType {
   Enum = 'Enum',
   Function = 'Function',

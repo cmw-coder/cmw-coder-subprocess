@@ -13,3 +13,5 @@ function bubbleSort2(arr: number[]): number[] {
 
 const arr = [1, 4, 2, 3, 5];
 console.log(bubbleSort2(arr));
+
+export default bubbleSort2;

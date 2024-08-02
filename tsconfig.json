@@ -1,10 +1,8 @@
 {
   "compilerOptions": {
+    "module": "commonjs",
     "target": "ES2020",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "lib": ["ES2020", "DOM"],
-    "skipLibCheck": true,
+    "lib": ["ES2021"],
     "baseUrl": ".",
     "paths": {
       "types/*": ["src/types/*"],
@@ -12,14 +10,14 @@
       "request/*": ["src/request/*"],
       "processes/*": ["src/processes/*"]
     },
+    "declaration": true,
 
     /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
+    "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "noEmit": true,
+    "noEmit": false,
 
     /* Linting */
     "strict": true,

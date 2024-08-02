@@ -1,18 +1,16 @@
 {
   "name": "cmw-coder-subprocess",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "webpack"
   },
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
+      "import": "./dist/index.cjs",
       "require": "./dist/index.umd.cjs"
     },
     "./reviewManagerProcess": {
@@ -26,15 +24,19 @@
     "@types/luxon": "^3.4.2",
     "@types/node": "^22.0.2",
     "@types/uuid": "^10.0.0",
+    "@types/yargs": "^17.0.32",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "prettier": "^3.3.3",
+    "ts-loader": "^9.5.1",
     "typescript": "^5.5.4",
-    "vite": "^5.3.5",
-    "vite-plugin-dts": "4.0.0-beta.2"
+    "webpack": "^5.93.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-node-externals": "^3.0.0"
   },
   "dependencies": {
     "luxon": "^3.4.4",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "yargs": "^17.7.2"
   }
 }

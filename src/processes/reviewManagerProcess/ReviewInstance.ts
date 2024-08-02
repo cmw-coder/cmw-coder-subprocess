@@ -12,11 +12,11 @@ import {
   ReviewData,
   ReviewResult,
   ReviewState,
-  ReviewType,
 } from 'types/review';
 import { DateTime } from 'luxon';
 import { v4 as uuidv4 } from 'uuid';
-import { ReviewMasterHandlerMap } from 'types/ReviewHandlerMap';
+import { ReviewMasterHandler } from 'types/ReviewHandler';
+import { LocalReviewHistoryManager } from 'common/LocalReviewHistoryManager';
 
 const REFRESH_TIME = 3000;
 
@@ -45,7 +45,8 @@ export class ReviewInstance {
   constructor(
     private selection: Selection,
     private extraData: ExtraData,
-    private proxyFn: ReviewMasterHandlerMap,
+    private proxyFn: ReviewMasterHandler,
+    private localReviewHistoryManager: LocalReviewHistoryManager,
   ) {}
 
   async start() {
@@ -76,7 +77,6 @@ export class ReviewInstance {
         this.refreshReviewState();
       }, REFRESH_TIME);
     } catch (e) {
-      log.error(e);
       this.state = ReviewState.Error;
       this.isRunning = false;
       this.endTime = DateTime.now().valueOf() / 1000;
@@ -118,7 +118,6 @@ export class ReviewInstance {
         this.onEnd();
       }
     } catch (error) {
-      log.error(error);
       if (this.timer) {
         clearInterval(this.timer);
       }
@@ -138,15 +137,9 @@ export class ReviewInstance {
 
   saveReviewData() {
     const reviewData = this.getReviewData();
-    const dataStoreService = container.get<DataStoreService>(
-      ServiceType.DATA_STORE,
-    );
     const now = DateTime.now();
     const nowStr = now.toFormat('yyyy-MM-dd');
-    dataStoreService.localReviewHistoryManager.saveReviewItem(
-      nowStr,
-      reviewData,
-    );
+    this.localReviewHistoryManager.saveReviewItem(nowStr, reviewData);
   }
 
   getReviewData() {
@@ -174,7 +167,7 @@ export class ReviewInstance {
       try {
         await api_stop_review(this.serverTaskId);
       } catch (e) {
-        log.error('stopReview.failed', e);
+        this.proxyFn.log('stopReview.failed', e);
       }
     }
     this.state = ReviewState.Error;
