@@ -138,6 +138,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
                 range: new master_1.Range(captures[0].node.startPosition.row, captures[0].node.startPosition.column, captures[0].node.endPosition.row, captures[0].node.endPosition.column),
                 language: 'c',
             }));
+            this.proxyFn.log(`review file: ${filePath} [Function number]: ${functionDefinitions.length}`);
             for (let i = 0; i < functionDefinitions.length; i++) {
                 const functionDefinition = functionDefinitions[i];
                 try {

@@ -186,6 +186,9 @@ class ReviewProcess
           language: 'c',
         }),
       );
+      this.proxyFn.log(
+        `review file: ${filePath} [Function number]: ${functionDefinitions.length}`,
+      );
       for (let i = 0; i < functionDefinitions.length; i++) {
         const functionDefinition = functionDefinitions[i];
         try {
