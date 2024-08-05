@@ -50,4 +50,5 @@ export interface ReviewChildHandler {
   stopReview(reviewId: string): Promise<any>;
   getReviewFileList(): Promise<ReviewFileItem[]>;
   getFileReviewList(filePath: string): Promise<ReviewData[]>;
+  clearReview(): Promise<any>;
 }

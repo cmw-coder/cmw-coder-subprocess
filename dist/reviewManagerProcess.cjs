@@ -203,6 +203,16 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
     async setReviewFeedback(data) {
         this.proxyFn.log(`setReviewFeedback: ${data.reviewId} ${data.feedback} ${data.comment}`);
     }
+    async clearReview() {
+        this.proxyFn.log(`clear review`);
+        for (let i = 0; i < this.runningReviewList.length; i++) {
+            const review = this.runningReviewList[i];
+            if (review.isRunning) {
+                await review.stop();
+            }
+        }
+        this.activeReviewList = [];
+    }
 }
 new ReviewProcess();
 

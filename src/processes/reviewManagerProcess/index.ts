@@ -275,6 +275,17 @@ class ReviewProcess
       `setReviewFeedback: ${data.reviewId} ${data.feedback} ${data.comment}`,
     );
   }
+
+  async clearReview(): Promise<any> {
+    this.proxyFn.log(`clear review`);
+    for (let i = 0; i < this.runningReviewList.length; i++) {
+      const review = this.runningReviewList[i];
+      if(review.isRunning) {
+        await review.stop();
+      }
+    }
+    this.activeReviewList = [];
+  }
 }
 
 new ReviewProcess();
