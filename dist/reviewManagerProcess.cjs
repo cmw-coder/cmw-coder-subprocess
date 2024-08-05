@@ -85,6 +85,23 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
     async getFileReviewList(filePath) {
         return this.reviewDataList.filter((review) => review.selection.file === filePath);
     }
+    async reviewProject({ projectDirPath, extraData, }) {
+        const isExist = await fs_1.promises.stat(projectDirPath).catch(() => false);
+        if (!isExist) {
+            this.proxyFn.log(`project not exist: ${projectDirPath}`);
+            return;
+        }
+        const fileList = await (0, utils_1.getFilesInDirectory)(projectDirPath);
+        const cppFileList = fileList.filter((file) => path_1.default.extname(file) === '.c');
+        for (let i = 0; i < cppFileList.length; i++) {
+            const file = cppFileList[i];
+            await (0, utils_1.timeout)(2000);
+            await this.reviewFile({
+                filePath: file,
+                extraData,
+            });
+        }
+    }
     async reviewFile({ filePath, extraData, }) {
         const isExist = await fs_1.promises.stat(filePath).catch(() => false);
         if (!isExist) {
@@ -133,23 +150,6 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         catch (error) {
             this.proxyFn.log(`review file error: ${error}`);
             return;
-        }
-    }
-    async reviewProject({ projectDirPath, extraData, }) {
-        const isExist = await fs_1.promises.stat(projectDirPath).catch(() => false);
-        if (!isExist) {
-            this.proxyFn.log(`project not exist: ${projectDirPath}`);
-            return;
-        }
-        const fileList = await (0, utils_1.getFilesInDirectory)(projectDirPath);
-        const cppFileList = fileList.filter((file) => path_1.default.extname(file) === '.c');
-        for (let i = 0; i < cppFileList.length; i++) {
-            const file = cppFileList[i];
-            await (0, utils_1.timeout)(1000);
-            await this.reviewFile({
-                filePath: file,
-                extraData,
-            });
         }
     }
     async addReview(data) {

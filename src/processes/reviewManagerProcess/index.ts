@@ -103,6 +103,30 @@ class ReviewProcess
     );
   }
 
+  async reviewProject({
+    projectDirPath,
+    extraData,
+  }: {
+    projectDirPath: string;
+    extraData: ExtraData;
+  }) {
+    const isExist = await promises.stat(projectDirPath).catch(() => false);
+    if (!isExist) {
+      this.proxyFn.log(`project not exist: ${projectDirPath}`);
+      return;
+    }
+    const fileList = await getFilesInDirectory(projectDirPath);
+    const cppFileList = fileList.filter((file) => path.extname(file) === '.c');
+    for (let i = 0; i < cppFileList.length; i++) {
+      const file = cppFileList[i];
+      await timeout(2000);
+      await this.reviewFile({
+        filePath: file,
+        extraData,
+      });
+    }
+  }
+
   async reviewFile({
     filePath,
     extraData,
@@ -172,30 +196,6 @@ class ReviewProcess
     } catch (error) {
       this.proxyFn.log(`review file error: ${error}`);
       return;
-    }
-  }
-
-  async reviewProject({
-    projectDirPath,
-    extraData,
-  }: {
-    projectDirPath: string;
-    extraData: ExtraData;
-  }) {
-    const isExist = await promises.stat(projectDirPath).catch(() => false);
-    if (!isExist) {
-      this.proxyFn.log(`project not exist: ${projectDirPath}`);
-      return;
-    }
-    const fileList = await getFilesInDirectory(projectDirPath);
-    const cppFileList = fileList.filter((file) => path.extname(file) === '.c');
-    for (let i = 0; i < cppFileList.length; i++) {
-      const file = cppFileList[i];
-      await timeout(1000);
-      await this.reviewFile({
-        filePath: file,
-        extraData,
-      });
     }
   }
 
@@ -280,7 +280,7 @@ class ReviewProcess
     this.proxyFn.log(`clear review`);
     for (let i = 0; i < this.runningReviewList.length; i++) {
       const review = this.runningReviewList[i];
-      if(review.isRunning) {
+      if (review.isRunning) {
         await review.stop();
       }
     }
