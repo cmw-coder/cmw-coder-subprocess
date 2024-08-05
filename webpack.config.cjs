@@ -3,6 +3,7 @@
 
 const path = require('path');
 // const nodeExternals = require('webpack-node-externals');
+const CopyPlugin = require('copy-webpack-plugin');
 
 /**@type WebpackConfig */
 const buildConfig = {
@@ -43,6 +44,16 @@ const buildConfig = {
     libraryTarget: 'commonjs2',
   },
   // externals: [nodeExternals()],
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        {
+          from: path.resolve('node_modules/web-tree-sitter/tree-sitter.wasm'),
+          to: path.resolve('dist/tree-sitter.wasm'),
+        }
+      ]
+    })
+  ]
 };
 
 module.exports = [buildConfig];
