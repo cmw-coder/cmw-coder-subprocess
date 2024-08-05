@@ -2,6 +2,7 @@ import { ExtraData, Reference, ReviewData, ReviewFileItem, Selection } from './r
 import { AppConfig } from './master';
 export interface ReviewMasterHandler {
     getConfig(): Promise<AppConfig>;
+    getScriptDir(): Promise<string>;
     log(...payloads: any[]): Promise<void>;
     getReferences(selection: Selection): Promise<Reference[]>;
     reviewDataUpdated(reviewId: string): Promise<void>;

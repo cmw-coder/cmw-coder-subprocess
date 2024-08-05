@@ -22,12 +22,10 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         super();
         this._parserInitialized = false;
         this.activeReviewList = [];
+        this.cppParser = undefined;
+        this.cppParserLanguage = undefined;
         this.localReviewHistoryManager = new LocalReviewHistoryManager_1.LocalReviewHistoryManager(argv.historyDir, this.proxyFn);
-        web_tree_sitter_1.default.init({
-            locateFile: () => {
-                return path_1.default.resolve('/public/tree-sitter/tree-sitter.wasm');
-            },
-        }).then(() => (this._parserInitialized = true));
+        web_tree_sitter_1.default.init().then(() => (this._parserInitialized = true));
         this.proxyFn.log('review process started', process.pid);
     }
     get runningReviewList() {
@@ -96,13 +94,15 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         }
         const fileBuffer = await fs_1.promises.readFile(filePath);
         const fileContent = (0, iconv_lite_1.decode)(fileBuffer, 'gbk');
-        const treeSitterFolder = path_1.default.resolve('/public/tree-sitter');
         try {
-            const parser = new web_tree_sitter_1.default();
-            const language = await web_tree_sitter_1.default.Language.load(`${treeSitterFolder}/tree-sitter-c.wasm`);
-            parser.setLanguage(language);
-            const functionDefinitionQuery = language.query('(function_definition) @definition');
-            const tree = parser.parse(fileContent);
+            if (!this.cppParser || !this.cppParserLanguage) {
+                this.cppParser = new web_tree_sitter_1.default();
+                const scriptDir = await this.proxyFn.getScriptDir();
+                this.cppParserLanguage = await web_tree_sitter_1.default.Language.load(`${scriptDir}/dist/public/tree-sitter/tree-sitter-c.wasm`);
+                this.cppParser.setLanguage(this.cppParserLanguage);
+            }
+            const functionDefinitionQuery = this.cppParserLanguage.query('(function_definition) @definition');
+            const tree = this.cppParser.parse(fileContent);
             const matches = functionDefinitionQuery.matches(tree.rootNode);
             const functionDefinitions = matches.map(({ captures }) => ({
                 block: fileContent.slice(captures[0].node.startIndex, captures[0].node.endIndex),

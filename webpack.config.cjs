@@ -35,7 +35,9 @@ const buildConfig = {
   },
   target: 'node',
   entry: {
-    reviewManagerProcess: path.resolve('src/processes/reviewManagerProcess/index.ts'),
+    reviewManagerProcess: path.resolve(
+      'src/processes/reviewManagerProcess/index.ts',
+    ),
     fileWatchProcess: path.resolve('src/processes/fileWatchProcess/index.ts'),
   },
   output: {
@@ -49,15 +51,15 @@ const buildConfig = {
       patterns: [
         {
           from: path.resolve('node_modules/web-tree-sitter/tree-sitter.wasm'),
-          to: path.resolve('dist/public/tree-sitter/tree-sitter.wasm'),
+          to: path.resolve('dist/tree-sitter.wasm'),
         },
         {
           from: path.resolve('public/tree-sitter/tree-sitter-c.wasm'),
           to: path.resolve('dist/public/tree-sitter/tree-sitter-c.wasm'),
-        }
-      ]
-    })
-  ]
+        },
+      ],
+    }),
+  ],
 };
 
 module.exports = [buildConfig];

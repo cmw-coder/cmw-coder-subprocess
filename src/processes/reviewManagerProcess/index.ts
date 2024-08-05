@@ -30,17 +30,15 @@ class ReviewProcess
 {
   private _parserInitialized = false;
   private activeReviewList: ReviewInstance[] = [];
+  private cppParser: Parser | undefined = undefined;
+  private cppParserLanguage: Parser.Language | undefined = undefined;
   private localReviewHistoryManager = new LocalReviewHistoryManager(
     argv.historyDir,
     this.proxyFn,
   );
   constructor() {
     super();
-    Parser.init({
-      locateFile: () => {
-        return path.resolve('/public/tree-sitter/tree-sitter.wasm');
-      },
-    }).then(() => (this._parserInitialized = true));
+    Parser.init().then(() => (this._parserInitialized = true));
     this.proxyFn.log('review process started', process.pid);
   }
 
@@ -126,17 +124,19 @@ class ReviewProcess
     }
     const fileBuffer = await promises.readFile(filePath);
     const fileContent = decode(fileBuffer, 'gbk');
-    const treeSitterFolder = path.resolve('/public/tree-sitter');
     try {
-      const parser = new Parser();
-      const language = await Parser.Language.load(
-        `${treeSitterFolder}/tree-sitter-c.wasm`,
-      );
-      parser.setLanguage(language);
-      const functionDefinitionQuery = language.query(
+      if(!this.cppParser || !this.cppParserLanguage) {
+        this.cppParser = new Parser();
+        const scriptDir = await this.proxyFn.getScriptDir();
+        this.cppParserLanguage = await Parser.Language.load(
+          `${scriptDir}/dist/public/tree-sitter/tree-sitter-c.wasm`,
+        );
+        this.cppParser.setLanguage(this.cppParserLanguage);
+      }
+      const functionDefinitionQuery = this.cppParserLanguage.query(
         '(function_definition) @definition',
       );
-      const tree = parser.parse(fileContent);
+      const tree = this.cppParser.parse(fileContent);
       const matches = functionDefinitionQuery.matches(tree.rootNode);
       const functionDefinitions = matches.map(
         ({ captures }): Selection => ({
