@@ -54,6 +54,10 @@ const buildConfig = {
         {
           from: path.resolve('public/tree-sitter/tree-sitter-c.wasm'),
           to: path.resolve('dist/public/tree-sitter/tree-sitter-c.wasm'),
+        },
+        {
+          from: path.resolve('node_modules/web-tree-sitter/tree-sitter.wasm'),
+          to: path.resolve('dist/tree-sitter.wasm'),
         }
       ]
     })
