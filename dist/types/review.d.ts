@@ -1,4 +1,4 @@
-import { Range } from "types/master";
+import { Range } from "./master";
 export declare enum SymbolType {
     Enum = "Enum",
     Function = "Function",

@@ -1,5 +1,5 @@
-import { ExtraData, Feedback, Reference, ReviewData, ReviewFileItem, ReviewRequestParams, ReviewResult, ReviewState, Selection } from 'types/review';
-import { AppConfig } from 'types/master';
+import { ExtraData, Feedback, Reference, ReviewData, ReviewFileItem, ReviewRequestParams, ReviewResult, ReviewState, Selection } from './review';
+import { AppConfig } from './master';
 export interface ReviewMasterHandler {
     getConfig(): Promise<AppConfig>;
     getScriptDir(): Promise<string>;

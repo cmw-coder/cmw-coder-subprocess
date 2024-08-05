@@ -36,6 +36,7 @@ class ReviewProcess
     argv.historyDir,
     this.proxyFn,
   );
+  private isClearAll = false;
   constructor() {
     super();
     Parser.init().then(() => (this._parserInitialized = true));
@@ -110,6 +111,7 @@ class ReviewProcess
     projectDirPath: string;
     extraData: ExtraData;
   }) {
+    this.isClearAll = false;
     const isExist = await promises.stat(projectDirPath).catch(() => false);
     if (!isExist) {
       this.proxyFn.log(`project not exist: ${projectDirPath}`);
@@ -117,13 +119,17 @@ class ReviewProcess
     }
     const fileList = await getFilesInDirectory(projectDirPath);
     const cppFileList = fileList.filter((file) => path.extname(file) === '.c');
+    this.proxyFn.log(`review project file num: ${cppFileList.length}`);
     for (let i = 0; i < cppFileList.length; i++) {
+      if (this.isClearAll) {
+        break;
+      }
       const file = cppFileList[i];
-      // await timeout(2000);
       await this.reviewFile({
         filePath: file,
         extraData,
       });
+      await timeout(2000);
     }
   }
 
@@ -134,6 +140,7 @@ class ReviewProcess
     filePath: string;
     extraData: ExtraData;
   }): Promise<any> {
+    this.isClearAll = false;
     const isExist = await promises.stat(filePath).catch(() => false);
     if (!isExist) {
       this.proxyFn.log(`file not exist: ${filePath}`);
@@ -200,6 +207,7 @@ class ReviewProcess
   }
 
   async addReview(data: { selection: Selection; extraData: ExtraData }) {
+    this.isClearAll = false;
     const review = new ReviewInstance(
       data.selection,
       data.extraData,
@@ -285,6 +293,7 @@ class ReviewProcess
       }
     }
     this.activeReviewList = [];
+    this.isClearAll = true;
   }
 }
 

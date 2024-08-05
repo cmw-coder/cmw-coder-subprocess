@@ -1,6 +1,6 @@
-import { ExtraData, Selection, Feedback, Reference, ReviewData, ReviewResult, ReviewState } from 'types/review';
-import { ReviewMasterHandler } from 'types/ReviewHandler';
-import { LocalReviewHistoryManager } from 'common/LocalReviewHistoryManager';
+import { ExtraData, Selection, Feedback, Reference, ReviewData, ReviewResult, ReviewState } from '../../types/review';
+import { ReviewMasterHandler } from '../../types/ReviewHandler';
+import { LocalReviewHistoryManager } from '../../common/LocalReviewHistoryManager';
 export declare class ReviewInstance {
     private selection;
     private extraData;

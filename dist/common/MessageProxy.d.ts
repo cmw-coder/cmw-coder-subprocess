@@ -1,4 +1,4 @@
-import { ReviewProcessArgv } from 'types/argv';
+import { ReviewProcessArgv } from '../types/argv';
 export interface processMessage {
     id?: string;
     key?: string;

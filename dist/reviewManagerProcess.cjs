@@ -31,6 +31,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this.cppParser = undefined;
         this.cppParserLanguage = undefined;
         this.localReviewHistoryManager = new LocalReviewHistoryManager_1.LocalReviewHistoryManager(argv.historyDir, this.proxyFn);
+        this.isClearAll = false;
         web_tree_sitter_1.default.init().then(() => (this._parserInitialized = true));
         this.proxyFn.log(`review process started ${process.pid}`);
     }
@@ -86,6 +87,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         return this.reviewDataList.filter((review) => review.selection.file === filePath);
     }
     async reviewProject({ projectDirPath, extraData, }) {
+        this.isClearAll = false;
         const isExist = await fs_1.promises.stat(projectDirPath).catch(() => false);
         if (!isExist) {
             this.proxyFn.log(`project not exist: ${projectDirPath}`);
@@ -93,16 +95,21 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         }
         const fileList = await (0, utils_1.getFilesInDirectory)(projectDirPath);
         const cppFileList = fileList.filter((file) => path_1.default.extname(file) === '.c');
+        this.proxyFn.log(`review project file num: ${cppFileList.length}`);
         for (let i = 0; i < cppFileList.length; i++) {
+            if (this.isClearAll) {
+                break;
+            }
             const file = cppFileList[i];
-            // await timeout(2000);
             await this.reviewFile({
                 filePath: file,
                 extraData,
             });
+            await (0, utils_1.timeout)(2000);
         }
     }
     async reviewFile({ filePath, extraData, }) {
+        this.isClearAll = false;
         const isExist = await fs_1.promises.stat(filePath).catch(() => false);
         if (!isExist) {
             this.proxyFn.log(`file not exist: ${filePath}`);
@@ -153,6 +160,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         }
     }
     async addReview(data) {
+        this.isClearAll = false;
         const review = new ReviewInstance_1.ReviewInstance(data.selection, data.extraData, this.proxyFn, this.localReviewHistoryManager);
         this.activeReviewList.push(review);
         review.onStart = () => {
@@ -212,6 +220,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
             }
         }
         this.activeReviewList = [];
+        this.isClearAll = true;
     }
 }
 new ReviewProcess();
