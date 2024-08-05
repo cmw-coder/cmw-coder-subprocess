@@ -13,7 +13,6 @@ const buildConfig = {
     alias: {
       types: path.resolve('src/types'),
       common: path.resolve('src/common'),
-      request: path.resolve('src/request'),
       processes: path.resolve('src/processes'),
     },
   },

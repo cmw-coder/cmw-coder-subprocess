@@ -1,8 +1,12 @@
 import {
   ExtraData,
+  Feedback,
   Reference,
   ReviewData,
   ReviewFileItem,
+  ReviewRequestParams,
+  ReviewResult,
+  ReviewState,
   Selection,
 } from 'types/review';
 import { AppConfig } from 'types/master';
@@ -14,6 +18,18 @@ export interface ReviewMasterHandler {
   getReferences(selection: Selection): Promise<Reference[]>;
   reviewDataUpdated(reviewId: string): Promise<void>;
   reviewFileListUpdated(): Promise<void>;
+
+  api_code_review: (data: ReviewRequestParams) => Promise<string>;
+  api_get_code_review_state: (serverTaskId: string) => Promise<ReviewState>;
+  api_get_code_review_result: (serverTaskId: string) => Promise<ReviewResult>;
+  api_feedback_review: (
+    serverTaskId: string,
+    userId: string,
+    feedback: Feedback,
+    timestamp: number,
+    comment: string,
+  ) => Promise<unknown>;
+  api_stop_review: (serverTaskId: string) => Promise<unknown>;
 }
 
 export interface ReviewChildHandler {

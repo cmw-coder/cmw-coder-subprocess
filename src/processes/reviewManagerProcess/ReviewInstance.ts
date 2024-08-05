@@ -1,10 +1,4 @@
 import {
-  api_code_review,
-  api_get_code_review_result,
-  api_get_code_review_state,
-  api_stop_review,
-} from 'request/review';
-import {
   ExtraData,
   Selection,
   Feedback,
@@ -60,7 +54,7 @@ export class ReviewInstance {
     this.referenceTime = DateTime.now().valueOf() / 1000;
     this.onUpdate();
     try {
-      this.serverTaskId = await api_code_review({
+      this.serverTaskId = await this.proxyFn.api_code_review({
         productLine: appConfig.activeTemplate,
         profileModel: appConfig.activeModel,
         templateName: 'CodeReviewV1',
@@ -93,7 +87,9 @@ export class ReviewInstance {
 
   async refreshReviewState() {
     try {
-      this.state = await api_get_code_review_state(this.serverTaskId);
+      this.state = await this.proxyFn.api_get_code_review_state(
+        this.serverTaskId,
+      );
       if (
         this.state === ReviewState.Third ||
         this.state === ReviewState.Finished
@@ -132,7 +128,9 @@ export class ReviewInstance {
   }
 
   async getReviewResult() {
-    this.result = await api_get_code_review_result(this.serverTaskId);
+    this.result = await this.proxyFn.api_get_code_review_result(
+      this.serverTaskId,
+    );
   }
 
   saveReviewData() {
@@ -165,7 +163,7 @@ export class ReviewInstance {
     clearInterval(this.timer);
     if (this.state === ReviewState.Start) {
       try {
-        await api_stop_review(this.serverTaskId);
+        await this.proxyFn.api_stop_review(this.serverTaskId);
       } catch (e) {
         this.proxyFn.log('stopReview.failed', e);
       }

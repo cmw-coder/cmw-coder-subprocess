@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReviewInstance = void 0;
-const review_1 = require("../../request/review");
-const review_2 = require("../../types/review");
+const review_1 = require("../../types/review");
 const luxon_1 = require("luxon");
 const uuid_1 = require("uuid");
 const REFRESH_TIME = 3000;
@@ -14,9 +13,9 @@ class ReviewInstance {
         this.localReviewHistoryManager = localReviewHistoryManager;
         this.reviewId = (0, uuid_1.v4)();
         this.serverTaskId = '';
-        this.state = review_2.ReviewState.Queue;
+        this.state = review_1.ReviewState.Queue;
         this.references = [];
-        this.feedback = review_2.Feedback.None;
+        this.feedback = review_1.Feedback.None;
         this.errorInfo = '';
         // 创建时间
         this.createTime = luxon_1.DateTime.now().valueOf() / 1000;
@@ -33,16 +32,16 @@ class ReviewInstance {
     }
     async start() {
         this.isRunning = true;
-        this.state = review_2.ReviewState.Ready;
+        this.state = review_1.ReviewState.Ready;
         this.startTime = luxon_1.DateTime.now().valueOf() / 1000;
         this.onUpdate();
         const appConfig = await this.proxyFn.getConfig();
         this.references = await this.proxyFn.getReferences(this.selection);
-        this.state = review_2.ReviewState.References;
+        this.state = review_1.ReviewState.References;
         this.referenceTime = luxon_1.DateTime.now().valueOf() / 1000;
         this.onUpdate();
         try {
-            this.serverTaskId = await (0, review_1.api_code_review)({
+            this.serverTaskId = await this.proxyFn.api_code_review({
                 productLine: appConfig.activeTemplate,
                 profileModel: appConfig.activeModel,
                 templateName: 'CodeReviewV1',
@@ -53,14 +52,14 @@ class ReviewInstance {
                 },
                 language: this.selection.language,
             });
-            this.state = review_2.ReviewState.Start;
+            this.state = review_1.ReviewState.Start;
             this.onUpdate();
             this.timer = setInterval(() => {
                 this.refreshReviewState();
             }, REFRESH_TIME);
         }
         catch (e) {
-            this.state = review_2.ReviewState.Error;
+            this.state = review_1.ReviewState.Error;
             this.isRunning = false;
             this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
             this.errorInfo = e.message;
@@ -75,19 +74,19 @@ class ReviewInstance {
     }
     async refreshReviewState() {
         try {
-            this.state = await (0, review_1.api_get_code_review_state)(this.serverTaskId);
-            if (this.state === review_2.ReviewState.Third ||
-                this.state === review_2.ReviewState.Finished) {
+            this.state = await this.proxyFn.api_get_code_review_state(this.serverTaskId);
+            if (this.state === review_1.ReviewState.Third ||
+                this.state === review_1.ReviewState.Finished) {
                 clearInterval(this.timer);
                 this.isRunning = false;
                 await this.getReviewResult();
-                this.state = review_2.ReviewState.Finished;
+                this.state = review_1.ReviewState.Finished;
                 this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
                 this.saveReviewData();
                 this.onUpdate();
                 this.onEnd();
             }
-            if (this.state === review_2.ReviewState.Error) {
+            if (this.state === review_1.ReviewState.Error) {
                 clearInterval(this.timer);
                 this.isRunning = false;
                 await this.getReviewResult();
@@ -103,7 +102,7 @@ class ReviewInstance {
                 clearInterval(this.timer);
             }
             this.isRunning = false;
-            this.state = review_2.ReviewState.Error;
+            this.state = review_1.ReviewState.Error;
             this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
             this.errorInfo = error.message;
             this.saveReviewData();
@@ -112,7 +111,7 @@ class ReviewInstance {
         }
     }
     async getReviewResult() {
-        this.result = await (0, review_1.api_get_code_review_result)(this.serverTaskId);
+        this.result = await this.proxyFn.api_get_code_review_result(this.serverTaskId);
     }
     saveReviewData() {
         const reviewData = this.getReviewData();
@@ -140,15 +139,15 @@ class ReviewInstance {
     }
     async stop() {
         clearInterval(this.timer);
-        if (this.state === review_2.ReviewState.Start) {
+        if (this.state === review_1.ReviewState.Start) {
             try {
-                await (0, review_1.api_stop_review)(this.serverTaskId);
+                await this.proxyFn.api_stop_review(this.serverTaskId);
             }
             catch (e) {
                 this.proxyFn.log('stopReview.failed', e);
             }
         }
-        this.state = review_2.ReviewState.Error;
+        this.state = review_1.ReviewState.Error;
         this.errorInfo = 'USER STOPPED REVIEW TASK';
         this.onUpdate();
         this.onEnd();
