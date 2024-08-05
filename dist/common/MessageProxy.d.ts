@@ -21,6 +21,7 @@ export declare class MessageToChildProxy<T = {
     private promiseMap;
     proxyFn: T;
     constructor(scriptPath: string, argv: ReviewProcessArgv);
+    get pid(): number | undefined;
     private sendMessage;
     private receivedMessage;
 }

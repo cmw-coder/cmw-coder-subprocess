@@ -128,6 +128,10 @@ export class MessageToChildProxy<
     });
   }
 
+  get pid() {
+    return this.childProcess.pid;
+  }
+
   private sendMessage(message: processMessage) {
     const { id, key, data } = message;
     if (id) {

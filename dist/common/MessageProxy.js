@@ -93,6 +93,9 @@ class MessageToChildProxy {
             console.error(`[${this.childProcess.pid}]  error`, err);
         });
     }
+    get pid() {
+        return this.childProcess.pid;
+    }
     sendMessage(message) {
         const { id, key, data } = message;
         if (id) {
