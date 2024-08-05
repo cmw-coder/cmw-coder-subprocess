@@ -119,7 +119,7 @@ class ReviewProcess
     const cppFileList = fileList.filter((file) => path.extname(file) === '.c');
     for (let i = 0; i < cppFileList.length; i++) {
       const file = cppFileList[i];
-      await timeout(2000);
+      // await timeout(2000);
       await this.reviewFile({
         filePath: file,
         extraData,
