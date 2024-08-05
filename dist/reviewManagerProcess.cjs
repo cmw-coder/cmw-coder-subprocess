@@ -117,15 +117,21 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
                 range: new master_1.Range(captures[0].node.startPosition.row, captures[0].node.startPosition.column, captures[0].node.endPosition.row, captures[0].node.endPosition.column),
                 language: 'c',
             }));
-            functionDefinitions.map((functionDefinition) => {
-                this.addReview({
-                    selection: functionDefinition,
-                    extraData: {
-                        projectId: extraData.projectId,
-                        version: extraData.version,
-                    },
-                });
-            });
+            for (let i = 0; i < functionDefinitions.length; i++) {
+                const functionDefinition = functionDefinitions[i];
+                try {
+                    await this.addReview({
+                        selection: functionDefinition,
+                        extraData: {
+                            projectId: extraData.projectId,
+                            version: extraData.version,
+                        },
+                    });
+                }
+                catch (e) {
+                    this.proxyFn.log(`review file error: ${e}`);
+                }
+            }
         }
         catch (error) {
             this.proxyFn.log(`review file error: ${error}`);

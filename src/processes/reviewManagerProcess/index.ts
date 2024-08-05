@@ -125,7 +125,7 @@ class ReviewProcess
     const fileBuffer = await promises.readFile(filePath);
     const fileContent = decode(fileBuffer, 'gbk');
     try {
-      if(!this.cppParser || !this.cppParserLanguage) {
+      if (!this.cppParser || !this.cppParserLanguage) {
         this.cppParser = new Parser();
         const scriptDir = await this.proxyFn.getScriptDir();
         this.cppParserLanguage = await Parser.Language.load(
@@ -158,15 +158,20 @@ class ReviewProcess
           language: 'c',
         }),
       );
-      functionDefinitions.map((functionDefinition) => {
-        this.addReview({
-          selection: functionDefinition,
-          extraData: {
-            projectId: extraData.projectId,
-            version: extraData.version,
-          },
-        });
-      });
+      for (let i = 0; i < functionDefinitions.length; i++) {
+        const functionDefinition = functionDefinitions[i];
+        try {
+          await this.addReview({
+            selection: functionDefinition,
+            extraData: {
+              projectId: extraData.projectId,
+              version: extraData.version,
+            },
+          });
+        } catch (e) {
+          this.proxyFn.log(`review file error: ${e}`);
+        }
+      }
     } catch (error) {
       this.proxyFn.log(`review file error: ${error}`);
       return;
