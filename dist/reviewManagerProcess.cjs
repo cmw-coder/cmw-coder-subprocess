@@ -29,7 +29,11 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this._parserInitialized = false;
         this.activeReviewList = [];
         this.localReviewHistoryManager = new LocalReviewHistoryManager_1.LocalReviewHistoryManager(argv.historyDir, this.proxyFn);
-        web_tree_sitter_1.default.init().then(() => (this._parserInitialized = true));
+        web_tree_sitter_1.default.init({
+            locateFile: () => {
+                return path_1.default.resolve('/public/tree-sitter/tree-sitter.wasm');
+            },
+        }).then(() => (this._parserInitialized = true));
         this.proxyFn.log('review process started', process.pid);
     }
     get runningReviewList() {

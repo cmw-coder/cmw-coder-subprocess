@@ -36,7 +36,11 @@ class ReviewProcess
   );
   constructor() {
     super();
-    Parser.init().then(() => (this._parserInitialized = true));
+    Parser.init({
+      locateFile: () => {
+        return path.resolve('/public/tree-sitter/tree-sitter.wasm');
+      },
+    }).then(() => (this._parserInitialized = true));
     this.proxyFn.log('review process started', process.pid);
   }
 
@@ -122,7 +126,7 @@ class ReviewProcess
     }
     const fileBuffer = await promises.readFile(filePath);
     const fileContent = decode(fileBuffer, 'gbk');
-    const treeSitterFolder = path.resolve('/public/tree-sitter')
+    const treeSitterFolder = path.resolve('/public/tree-sitter');
     try {
       const parser = new Parser();
       const language = await Parser.Language.load(
