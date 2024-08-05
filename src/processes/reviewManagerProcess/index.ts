@@ -39,7 +39,7 @@ class ReviewProcess
   constructor() {
     super();
     Parser.init().then(() => (this._parserInitialized = true));
-    this.proxyFn.log('review process started', process.pid);
+    this.proxyFn.log(`review process started ${process.pid}`);
   }
 
   get runningReviewList() {
@@ -55,7 +55,6 @@ class ReviewProcess
   }
 
   async getReviewFileList(): Promise<ReviewFileItem[]> {
-    this.proxyFn.log('get review file list');
     const result: ReviewFileItem[] = [];
     for (let i = 0; i < this.reviewDataList.length; i++) {
       const review = this.reviewDataList[i];
@@ -99,7 +98,6 @@ class ReviewProcess
   }
 
   async getFileReviewList(filePath: string) {
-    this.proxyFn.log(`get file review list: ${filePath}`);
     return this.reviewDataList.filter(
       (review) => review.selection.file === filePath,
     );
@@ -112,7 +110,6 @@ class ReviewProcess
     filePath: string;
     extraData: ExtraData;
   }): Promise<any> {
-    this.proxyFn.log(`review file: ${filePath}`);
     const isExist = await promises.stat(filePath).catch(() => false);
     if (!isExist) {
       this.proxyFn.log(`file not exist: ${filePath}`);
@@ -185,7 +182,6 @@ class ReviewProcess
     projectDirPath: string;
     extraData: ExtraData;
   }) {
-    this.proxyFn.log(`review project: ${projectDirPath}`);
     const isExist = await promises.stat(projectDirPath).catch(() => false);
     if (!isExist) {
       this.proxyFn.log(`project not exist: ${projectDirPath}`);
@@ -204,7 +200,6 @@ class ReviewProcess
   }
 
   async addReview(data: { selection: Selection; extraData: ExtraData }) {
-    this.proxyFn.log(`add review: ${data.selection}`);
     const review = new ReviewInstance(
       data.selection,
       data.extraData,
@@ -276,9 +271,6 @@ class ReviewProcess
     feedback: Feedback;
     comment?: string;
   }): Promise<any> {
-    this.proxyFn.log(
-      `setReviewFeedback: ${data.reviewId} ${data.feedback} ${data.comment}`,
-    );
     this.proxyFn.log(
       `setReviewFeedback: ${data.reviewId} ${data.feedback} ${data.comment}`,
     );
