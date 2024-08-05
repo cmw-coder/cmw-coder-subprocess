@@ -37,6 +37,7 @@ class ReviewProcess
   constructor() {
     super();
     Parser.init().then(() => (this._parserInitialized = true));
+    this.proxyFn.log('review process started', process.pid);
   }
 
   get runningReviewList() {
@@ -52,13 +53,14 @@ class ReviewProcess
   }
 
   async getReviewFileList(): Promise<ReviewFileItem[]> {
+    this.proxyFn.log('get review file list');
     const result: ReviewFileItem[] = [];
     for (let i = 0; i < this.reviewDataList.length; i++) {
       const review = this.reviewDataList[i];
       const file = result.find((item) => item.path === review.selection.file);
       let problemNumber = 0;
       if (review.state === ReviewState.Finished) {
-        if (review.result.parsed) {
+        if (review?.result?.parsed) {
           review.result.data.forEach((problemItem) => {
             if (problemItem.IsProblem) {
               problemNumber++;
@@ -95,6 +97,7 @@ class ReviewProcess
   }
 
   async getFileReviewList(filePath: string) {
+    this.proxyFn.log(`get file review list: ${filePath}`);
     return this.reviewDataList.filter(
       (review) => review.selection.file === filePath,
     );
@@ -107,6 +110,7 @@ class ReviewProcess
     filePath: string;
     extraData: ExtraData;
   }): Promise<any> {
+    this.proxyFn.log(`review file: ${filePath}`);
     const isExist = await promises.stat(filePath).catch(() => false);
     if (!isExist) {
       this.proxyFn.log(`file not exist: ${filePath}`);
@@ -118,7 +122,7 @@ class ReviewProcess
     }
     const fileBuffer = await promises.readFile(filePath);
     const fileContent = decode(fileBuffer, 'gbk');
-    const treeSitterFolder = await this.proxyFn.getTreeSitterFolder();
+    const treeSitterFolder = path.resolve('/public/tree-sitter')
     try {
       const parser = new Parser();
       const language = await Parser.Language.load(
@@ -172,6 +176,7 @@ class ReviewProcess
     projectDirPath: string;
     extraData: ExtraData;
   }) {
+    this.proxyFn.log(`review project: ${projectDirPath}`);
     const isExist = await promises.stat(projectDirPath).catch(() => false);
     if (!isExist) {
       this.proxyFn.log(`project not exist: ${projectDirPath}`);
@@ -190,29 +195,22 @@ class ReviewProcess
   }
 
   async addReview(data: { selection: Selection; extraData: ExtraData }) {
+    this.proxyFn.log(`add review: ${data.selection}`);
     const review = new ReviewInstance(
       data.selection,
       data.extraData,
       this.proxyFn,
       this.localReviewHistoryManager,
     );
-    // const windowService = container.get<WindowService>(ServiceType.WINDOW);
-    // const mainWindow = windowService.getWindow(WindowType.Main);
     this.activeReviewList.push(review);
     review.onStart = () => {
-      // mainWindow.sendMessageToRenderer(
-      //   new ReviewDataUpdateActionMessage(review.reviewId),
-      // );
+      this.proxyFn.reviewDataUpdated(review.reviewId);
     };
     review.onUpdate = () => {
-      // mainWindow.sendMessageToRenderer(
-      //   new ReviewDataUpdateActionMessage(review.reviewId),
-      // );
+      this.proxyFn.reviewDataUpdated(review.reviewId);
     };
     review.onEnd = () => {
-      // mainWindow.sendMessageToRenderer(
-      //   new ReviewDataUpdateActionMessage(review.reviewId),
-      // );
+      this.proxyFn.reviewDataUpdated(review.reviewId);
       if (this.runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
         // 跑下一个任务
         const queueReviewList = this.activeReviewList.filter(
@@ -227,10 +225,11 @@ class ReviewProcess
     if (this.runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
       review.start();
     }
-    // mainWindow.sendMessageToRenderer(new ReviewFileListUpdateActionMessage());
+    this.proxyFn.reviewFileListUpdated();
   }
 
   async stopReview(reviewId: string) {
+    this.proxyFn.log(`stop review: ${reviewId}`);
     const review = this.activeReviewList.find(
       (review) => review.reviewId === reviewId,
     );
@@ -240,6 +239,7 @@ class ReviewProcess
   }
 
   async delReview(reviewId: string) {
+    this.proxyFn.log(`del review: ${reviewId}`);
     const review = this.activeReviewList.find(
       (review) => review.reviewId === reviewId,
     );
@@ -252,6 +252,7 @@ class ReviewProcess
   }
 
   async retryReview(reviewId: string): Promise<any> {
+    this.proxyFn.log(`retry review: ${reviewId}`);
     const review = this.activeReviewList.find(
       (review) => review.reviewId === reviewId,
     );
@@ -266,6 +267,9 @@ class ReviewProcess
     feedback: Feedback;
     comment?: string;
   }): Promise<any> {
+    this.proxyFn.log(
+      `setReviewFeedback: ${data.reviewId} ${data.feedback} ${data.comment}`,
+    );
     this.proxyFn.log(
       `setReviewFeedback: ${data.reviewId} ${data.feedback} ${data.comment}`,
     );

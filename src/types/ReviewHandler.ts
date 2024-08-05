@@ -9,9 +9,10 @@ import { AppConfig } from 'types/master';
 
 export interface ReviewMasterHandler {
   getConfig(): Promise<AppConfig>;
-  getTreeSitterFolder(): Promise<string>;
   log(...payloads: any[]): Promise<void>;
   getReferences(selection: Selection): Promise<Reference[]>;
+  reviewDataUpdated(reviewId: string): Promise<void>;
+  reviewFileListUpdated(): Promise<void>;
 }
 
 export interface ReviewChildHandler {

@@ -49,7 +49,11 @@ const buildConfig = {
       patterns: [
         {
           from: path.resolve('node_modules/web-tree-sitter/tree-sitter.wasm'),
-          to: path.resolve('dist/tree-sitter.wasm'),
+          to: path.resolve('dist/public/tree-sitter/tree-sitter.wasm'),
+        },
+        {
+          from: path.resolve('public/tree-sitter/tree-sitter-c.wasm'),
+          to: path.resolve('dist/public/tree-sitter/tree-sitter-c.wasm'),
         }
       ]
     })

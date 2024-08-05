@@ -2,9 +2,10 @@ import { ExtraData, Reference, ReviewData, ReviewFileItem, Selection } from './r
 import { AppConfig } from './master';
 export interface ReviewMasterHandler {
     getConfig(): Promise<AppConfig>;
-    getTreeSitterFolder(): Promise<string>;
     log(...payloads: any[]): Promise<void>;
     getReferences(selection: Selection): Promise<Reference[]>;
+    reviewDataUpdated(reviewId: string): Promise<void>;
+    reviewFileListUpdated(): Promise<void>;
 }
 export interface ReviewChildHandler {
     addReview(data: {

@@ -10,7 +10,7 @@ class MessageToMasterProxy {
         this.proxyFn = new Proxy({}, {
             get: (_, functionName) => (...payloads) => this.sendMessage({
                 key: functionName,
-                data: payloads,
+                data: payloads[0],
             }),
         });
         process.on('message', this.receivedMessage.bind(this));
@@ -20,7 +20,7 @@ class MessageToMasterProxy {
             throw new Error('process.send is not defined');
         }
         const { id, key, data } = message;
-        if (data.id) {
+        if (id) {
             // 子进程执行结果发送给主进程
             process.send({
                 id,
@@ -44,26 +44,24 @@ class MessageToMasterProxy {
     }
     async receivedMessage(message) {
         const { id, key, data } = message;
-        if (id) {
-            // 主进程执行结果
+        if (key && id) {
+            // 主进程 ---> 子进程执行 (data: 子进程执行参数)
+            // @ts-ignore
+            const fn = this[key];
+            if (typeof fn === 'function') {
+                const result = await fn.bind(this)(data);
+                this.sendMessage({
+                    id,
+                    data: result,
+                });
+            }
+        }
+        if (!key && id) {
+            // 主进程 ---> 子进程  (data: 主进程执行结果)
             const resolve = this.promiseMap.get(id);
             if (resolve) {
                 resolve(data);
                 this.promiseMap.delete(id);
-            }
-        }
-        else {
-            // 主进程发送消息给子进程执行
-            if (key) {
-                // @ts-ignore
-                const fn = this[key];
-                if (typeof fn === 'function') {
-                    const result = await fn(data);
-                    this.sendMessage({
-                        id,
-                        data: result,
-                    });
-                }
             }
         }
     }
@@ -77,7 +75,7 @@ class MessageToChildProxy {
         this.proxyFn = new Proxy({}, {
             get: (_, functionName) => (...payloads) => this.sendMessage({
                 key: functionName,
-                data: payloads,
+                data: payloads[0],
             }),
         });
         this.childProcess = (0, child_process_1.fork)(this.scriptPath, [`--historyDir=${argv.historyDir}`], {
@@ -97,7 +95,7 @@ class MessageToChildProxy {
     }
     sendMessage(message) {
         const { id, key, data } = message;
-        if (data.id) {
+        if (id) {
             // 主进程执行结果发送给子进程
             this.childProcess.send({
                 id,
@@ -121,26 +119,24 @@ class MessageToChildProxy {
     }
     async receivedMessage(message) {
         const { id, key, data } = message;
-        if (id) {
-            // 主进程执行结果
+        if (key && id) {
+            // 子进程 ---> 主进程执行 (data: 主进程执行参数)
+            // @ts-ignore
+            const fn = this[key];
+            if (typeof fn === 'function') {
+                const result = await fn.bind(this)(data);
+                this.sendMessage({
+                    id,
+                    data: result,
+                });
+            }
+        }
+        if (!key && id) {
+            // 子进程 ---> 主进程  (data: 子进程执行结果)
             const resolve = this.promiseMap.get(id);
             if (resolve) {
                 resolve(data);
                 this.promiseMap.delete(id);
-            }
-        }
-        else {
-            // 主进程发送消息给子进程执行
-            if (key) {
-                // @ts-ignore
-                const fn = this[key];
-                if (typeof fn === 'function') {
-                    const result = await fn(data);
-                    this.sendMessage({
-                        id,
-                        data: result,
-                    });
-                }
             }
         }
     }

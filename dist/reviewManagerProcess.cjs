@@ -30,6 +30,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this.activeReviewList = [];
         this.localReviewHistoryManager = new LocalReviewHistoryManager_1.LocalReviewHistoryManager(argv.historyDir, this.proxyFn);
         web_tree_sitter_1.default.init().then(() => (this._parserInitialized = true));
+        this.proxyFn.log('review process started', process.pid);
     }
     get runningReviewList() {
         return this.activeReviewList.filter((review) => review.isRunning);
@@ -41,13 +42,14 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         return this.reviewDataList;
     }
     async getReviewFileList() {
+        this.proxyFn.log('get review file list');
         const result = [];
         for (let i = 0; i < this.reviewDataList.length; i++) {
             const review = this.reviewDataList[i];
             const file = result.find((item) => item.path === review.selection.file);
             let problemNumber = 0;
             if (review.state === review_1.ReviewState.Finished) {
-                if (review.result.parsed) {
+                if (review?.result?.parsed) {
                     review.result.data.forEach((problemItem) => {
                         if (problemItem.IsProblem) {
                             problemNumber++;
@@ -80,9 +82,11 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         return result;
     }
     async getFileReviewList(filePath) {
+        this.proxyFn.log(`get file review list: ${filePath}`);
         return this.reviewDataList.filter((review) => review.selection.file === filePath);
     }
     async reviewFile({ filePath, extraData, }) {
+        this.proxyFn.log(`review file: ${filePath}`);
         const isExist = await fs_1.promises.stat(filePath).catch(() => false);
         if (!isExist) {
             this.proxyFn.log(`file not exist: ${filePath}`);
@@ -94,7 +98,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         }
         const fileBuffer = await fs_1.promises.readFile(filePath);
         const fileContent = (0, iconv_lite_1.decode)(fileBuffer, 'gbk');
-        const treeSitterFolder = await this.proxyFn.getTreeSitterFolder();
+        const treeSitterFolder = path_1.default.resolve('/public/tree-sitter');
         try {
             const parser = new web_tree_sitter_1.default();
             const language = await web_tree_sitter_1.default.Language.load(`${treeSitterFolder}/tree-sitter-c.wasm`);
@@ -125,6 +129,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         }
     }
     async reviewProject({ projectDirPath, extraData, }) {
+        this.proxyFn.log(`review project: ${projectDirPath}`);
         const isExist = await fs_1.promises.stat(projectDirPath).catch(() => false);
         if (!isExist) {
             this.proxyFn.log(`project not exist: ${projectDirPath}`);
@@ -142,24 +147,17 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         }
     }
     async addReview(data) {
+        this.proxyFn.log(`add review: ${data.selection}`);
         const review = new ReviewInstance_1.ReviewInstance(data.selection, data.extraData, this.proxyFn, this.localReviewHistoryManager);
-        // const windowService = container.get<WindowService>(ServiceType.WINDOW);
-        // const mainWindow = windowService.getWindow(WindowType.Main);
         this.activeReviewList.push(review);
         review.onStart = () => {
-            // mainWindow.sendMessageToRenderer(
-            //   new ReviewDataUpdateActionMessage(review.reviewId),
-            // );
+            this.proxyFn.reviewDataUpdated(review.reviewId);
         };
         review.onUpdate = () => {
-            // mainWindow.sendMessageToRenderer(
-            //   new ReviewDataUpdateActionMessage(review.reviewId),
-            // );
+            this.proxyFn.reviewDataUpdated(review.reviewId);
         };
         review.onEnd = () => {
-            // mainWindow.sendMessageToRenderer(
-            //   new ReviewDataUpdateActionMessage(review.reviewId),
-            // );
+            this.proxyFn.reviewDataUpdated(review.reviewId);
             if (this.runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
                 // 跑下一个任务
                 const queueReviewList = this.activeReviewList.filter((_review) => _review.state === review_1.ReviewState.Queue);
@@ -172,15 +170,17 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         if (this.runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
             review.start();
         }
-        // mainWindow.sendMessageToRenderer(new ReviewFileListUpdateActionMessage());
+        this.proxyFn.reviewFileListUpdated();
     }
     async stopReview(reviewId) {
+        this.proxyFn.log(`stop review: ${reviewId}`);
         const review = this.activeReviewList.find((review) => review.reviewId === reviewId);
         if (review) {
             review.stop();
         }
     }
     async delReview(reviewId) {
+        this.proxyFn.log(`del review: ${reviewId}`);
         const review = this.activeReviewList.find((review) => review.reviewId === reviewId);
         if (review) {
             review.stop();
@@ -188,6 +188,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this.activeReviewList = this.activeReviewList.filter((review) => review.reviewId !== reviewId);
     }
     async retryReview(reviewId) {
+        this.proxyFn.log(`retry review: ${reviewId}`);
         const review = this.activeReviewList.find((review) => review.reviewId === reviewId);
         if (review) {
             await review.stop();
@@ -195,6 +196,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         }
     }
     async setReviewFeedback(data) {
+        this.proxyFn.log(`setReviewFeedback: ${data.reviewId} ${data.feedback} ${data.comment}`);
         this.proxyFn.log(`setReviewFeedback: ${data.reviewId} ${data.feedback} ${data.comment}`);
     }
 }
@@ -218,7 +220,7 @@ class MessageToMasterProxy {
         this.proxyFn = new Proxy({}, {
             get: (_, functionName) => (...payloads) => this.sendMessage({
                 key: functionName,
-                data: payloads,
+                data: payloads[0],
             }),
         });
         process.on('message', this.receivedMessage.bind(this));
@@ -228,7 +230,7 @@ class MessageToMasterProxy {
             throw new Error('process.send is not defined');
         }
         const { id, key, data } = message;
-        if (data.id) {
+        if (id) {
             // 子进程执行结果发送给主进程
             process.send({
                 id,
@@ -252,26 +254,24 @@ class MessageToMasterProxy {
     }
     async receivedMessage(message) {
         const { id, key, data } = message;
-        if (id) {
-            // 主进程执行结果
+        if (key && id) {
+            // 主进程 ---> 子进程执行 (data: 子进程执行参数)
+            // @ts-ignore
+            const fn = this[key];
+            if (typeof fn === 'function') {
+                const result = await fn.bind(this)(data);
+                this.sendMessage({
+                    id,
+                    data: result,
+                });
+            }
+        }
+        if (!key && id) {
+            // 主进程 ---> 子进程  (data: 主进程执行结果)
             const resolve = this.promiseMap.get(id);
             if (resolve) {
                 resolve(data);
                 this.promiseMap.delete(id);
-            }
-        }
-        else {
-            // 主进程发送消息给子进程执行
-            if (key) {
-                // @ts-ignore
-                const fn = this[key];
-                if (typeof fn === 'function') {
-                    const result = await fn(data);
-                    this.sendMessage({
-                        id,
-                        data: result,
-                    });
-                }
             }
         }
     }
@@ -285,7 +285,7 @@ class MessageToChildProxy {
         this.proxyFn = new Proxy({}, {
             get: (_, functionName) => (...payloads) => this.sendMessage({
                 key: functionName,
-                data: payloads,
+                data: payloads[0],
             }),
         });
         this.childProcess = (0, child_process_1.fork)(this.scriptPath, [`--historyDir=${argv.historyDir}`], {
@@ -305,7 +305,7 @@ class MessageToChildProxy {
     }
     sendMessage(message) {
         const { id, key, data } = message;
-        if (data.id) {
+        if (id) {
             // 主进程执行结果发送给子进程
             this.childProcess.send({
                 id,
@@ -329,26 +329,24 @@ class MessageToChildProxy {
     }
     async receivedMessage(message) {
         const { id, key, data } = message;
-        if (id) {
-            // 主进程执行结果
+        if (key && id) {
+            // 子进程 ---> 主进程执行 (data: 主进程执行参数)
+            // @ts-ignore
+            const fn = this[key];
+            if (typeof fn === 'function') {
+                const result = await fn.bind(this)(data);
+                this.sendMessage({
+                    id,
+                    data: result,
+                });
+            }
+        }
+        if (!key && id) {
+            // 子进程 ---> 主进程  (data: 子进程执行结果)
             const resolve = this.promiseMap.get(id);
             if (resolve) {
                 resolve(data);
                 this.promiseMap.delete(id);
-            }
-        }
-        else {
-            // 主进程发送消息给子进程执行
-            if (key) {
-                // @ts-ignore
-                const fn = this[key];
-                if (typeof fn === 'function') {
-                    const result = await fn(data);
-                    this.sendMessage({
-                        id,
-                        data: result,
-                    });
-                }
             }
         }
     }
