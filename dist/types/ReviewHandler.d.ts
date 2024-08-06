@@ -44,4 +44,6 @@ export interface ReviewChildHandler {
     getReviewFileList(): Promise<ReviewFileItem[]>;
     getFileReviewList(filePath: string): Promise<ReviewData[]>;
     clearReview(): Promise<any>;
+    getReviewHistoryFiles(): Promise<string[]>;
+    getReviewFileContent(name: string): Promise<ReviewData[]>;
 }

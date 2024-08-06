@@ -133,11 +133,11 @@ export class ReviewInstance {
     );
   }
 
-  saveReviewData() {
+  async saveReviewData() {
     const reviewData = this.getReviewData();
     const now = DateTime.now();
     const nowStr = now.toFormat('yyyy-MM-dd');
-    this.localReviewHistoryManager.saveReviewItem(nowStr, reviewData);
+    return this.localReviewHistoryManager.saveReviewItem(nowStr, reviewData);
   }
 
   getReviewData() {

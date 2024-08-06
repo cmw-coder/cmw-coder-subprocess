@@ -40,9 +40,9 @@ class LocalReviewHistoryManager {
             fs.mkdirSync(this.localReviewHistoryDir);
         }
     }
-    getReviewHistoryFiles() {
+    async getReviewHistoryFiles() {
         const res = [];
-        const allFiles = fs.readdirSync(this.localReviewHistoryDir);
+        const allFiles = await fs.promises.readdir(this.localReviewHistoryDir);
         for (let i = 0; i < allFiles.length; i++) {
             const file = allFiles[i];
             if (file.endsWith('_review.json')) {
@@ -52,13 +52,13 @@ class LocalReviewHistoryManager {
         }
         return res;
     }
-    getReviewFileContent(name) {
+    async getReviewFileContent(name) {
         let res = [];
         const filePath = path_1.default.join(this.localReviewHistoryDir, name + '_review.json');
         if (!fs.existsSync(filePath)) {
             return [];
         }
-        const content = fs.readFileSync(filePath, 'utf8');
+        const content = await fs.promises.readFile(filePath, 'utf8');
         try {
             const parsedData = JSON.parse(content);
             res = parsedData.items;
@@ -83,7 +83,7 @@ class LocalReviewHistoryManager {
         });
         return res;
     }
-    saveReviewItem(name, item) {
+    async saveReviewItem(name, item) {
         let fileParsedContent = {
             date: new Date().valueOf(),
             items: [],
@@ -91,10 +91,11 @@ class LocalReviewHistoryManager {
         const filePath = path_1.default.join(this.localReviewHistoryDir, name + '_review.json');
         if (fs.existsSync(filePath)) {
             try {
-                fileParsedContent = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                const fileContent = await fs.promises.readFile(filePath, 'utf8');
+                fileParsedContent = JSON.parse(fileContent);
             }
             catch (e) {
-                this.proxyFn.log('saveReviewItem error', e);
+                this.proxyFn.log(`saveReviewItem ${filePath} error ${e}`);
             }
         }
         const existItemIndex = fileParsedContent.items.findIndex((i) => i.reviewId === item.reviewId);
@@ -103,7 +104,11 @@ class LocalReviewHistoryManager {
             fileParsedContent.items.splice(existItemIndex, 1);
         }
         fileParsedContent.items.push(item);
-        fs.writeFileSync(filePath, JSON.stringify(fileParsedContent));
+        fs.promises
+            .writeFile(filePath, JSON.stringify(fileParsedContent))
+            .catch((e) => {
+            this.proxyFn.log(`saveReviewItem ${filePath} error ${e}`);
+        });
     }
 }
 exports.LocalReviewHistoryManager = LocalReviewHistoryManager;

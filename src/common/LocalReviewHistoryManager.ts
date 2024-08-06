@@ -17,9 +17,9 @@ export class LocalReviewHistoryManager {
     }
   }
 
-  getReviewHistoryFiles(): string[] {
+  async getReviewHistoryFiles(): Promise<string[]> {
     const res: string[] = [];
-    const allFiles = fs.readdirSync(this.localReviewHistoryDir);
+    const allFiles = await fs.promises.readdir(this.localReviewHistoryDir);
     for (let i = 0; i < allFiles.length; i++) {
       const file = allFiles[i];
       if (file.endsWith('_review.json')) {
@@ -30,7 +30,7 @@ export class LocalReviewHistoryManager {
     return res;
   }
 
-  getReviewFileContent(name: string): ReviewData[] {
+  async getReviewFileContent(name: string): Promise<ReviewData[]> {
     let res: ReviewData[] = [];
     const filePath = path.join(
       this.localReviewHistoryDir,
@@ -39,7 +39,7 @@ export class LocalReviewHistoryManager {
     if (!fs.existsSync(filePath)) {
       return [];
     }
-    const content = fs.readFileSync(filePath, 'utf8');
+    const content = await fs.promises.readFile(filePath, 'utf8');
     try {
       const parsedData = JSON.parse(content) as unknown as ReviewFileData;
       res = parsedData.items;
@@ -64,7 +64,7 @@ export class LocalReviewHistoryManager {
     return res;
   }
 
-  saveReviewItem(name: string, item: ReviewData) {
+  async saveReviewItem(name: string, item: ReviewData) {
     let fileParsedContent: ReviewFileData = {
       date: new Date().valueOf(),
       items: [],
@@ -75,9 +75,10 @@ export class LocalReviewHistoryManager {
     );
     if (fs.existsSync(filePath)) {
       try {
-        fileParsedContent = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        const fileContent = await fs.promises.readFile(filePath, 'utf8');
+        fileParsedContent = JSON.parse(fileContent);
       } catch (e) {
-        this.proxyFn.log('saveReviewItem error', e);
+        this.proxyFn.log(`saveReviewItem ${filePath} error ${e}`);
       }
     }
     const existItemIndex = fileParsedContent.items.findIndex(
@@ -88,6 +89,10 @@ export class LocalReviewHistoryManager {
       fileParsedContent.items.splice(existItemIndex, 1);
     }
     fileParsedContent.items.push(item);
-    fs.writeFileSync(filePath, JSON.stringify(fileParsedContent));
+    fs.promises
+      .writeFile(filePath, JSON.stringify(fileParsedContent))
+      .catch((e) => {
+        this.proxyFn.log(`saveReviewItem ${filePath} error ${e}`);
+      });
   }
 }

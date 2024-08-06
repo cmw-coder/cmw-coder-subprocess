@@ -113,11 +113,11 @@ class ReviewInstance {
     async getReviewResult() {
         this.result = await this.proxyFn.api_get_code_review_result(this.serverTaskId);
     }
-    saveReviewData() {
+    async saveReviewData() {
         const reviewData = this.getReviewData();
         const now = luxon_1.DateTime.now();
         const nowStr = now.toFormat('yyyy-MM-dd');
-        this.localReviewHistoryManager.saveReviewItem(nowStr, reviewData);
+        return this.localReviewHistoryManager.saveReviewItem(nowStr, reviewData);
     }
     getReviewData() {
         return {

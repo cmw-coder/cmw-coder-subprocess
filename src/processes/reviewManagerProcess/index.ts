@@ -298,6 +298,14 @@ class ReviewProcess
     this.activeReviewList = [];
     this.isClearAll = true;
   }
+
+  async getReviewFileContent(name: string): Promise<ReviewData[]> {
+    return this.localReviewHistoryManager.getReviewFileContent(name);
+  }
+
+  async getReviewHistoryFiles(): Promise<string[]> {
+    return this.localReviewHistoryManager.getReviewHistoryFiles();
+  }
 }
 
 new ReviewProcess();

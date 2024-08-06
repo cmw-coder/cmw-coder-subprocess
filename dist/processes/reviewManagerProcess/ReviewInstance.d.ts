@@ -26,7 +26,7 @@ export declare class ReviewInstance {
     start(): Promise<void>;
     refreshReviewState(): Promise<void>;
     getReviewResult(): Promise<void>;
-    saveReviewData(): void;
+    saveReviewData(): Promise<void>;
     getReviewData(): ReviewData;
     stop(): Promise<void>;
 }

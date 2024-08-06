@@ -5,7 +5,7 @@ export declare class LocalReviewHistoryManager {
     private proxyFn;
     constructor(localReviewHistoryDir: string, proxyFn: ReviewMasterHandler);
     checkLocalReviewHistoryDir(): void;
-    getReviewHistoryFiles(): string[];
-    getReviewFileContent(name: string): ReviewData[];
-    saveReviewItem(name: string, item: ReviewData): void;
+    getReviewHistoryFiles(): Promise<string[]>;
+    getReviewFileContent(name: string): Promise<ReviewData[]>;
+    saveReviewItem(name: string, item: ReviewData): Promise<void>;
 }

@@ -217,5 +217,11 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this.activeReviewList = [];
         this.isClearAll = true;
     }
+    async getReviewFileContent(name) {
+        return this.localReviewHistoryManager.getReviewFileContent(name);
+    }
+    async getReviewHistoryFiles() {
+        return this.localReviewHistoryManager.getReviewHistoryFiles();
+    }
 }
 new ReviewProcess();
