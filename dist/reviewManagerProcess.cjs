@@ -45,19 +45,13 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         return this.reviewDataList;
     }
     async getReviewFileList() {
-        const result = [];
-        for (let i = 0; i < this.reviewDataList.length; i++) {
-            const review = this.reviewDataList[i];
-            const file = result.find((item) => item.path === review.selection.file);
+        const resultMap = new Map();
+        for (const review of this.reviewDataList) {
+            const filePath = review.selection.file;
+            let file = resultMap.get(filePath);
             let problemNumber = 0;
-            if (review.state === review_1.ReviewState.Finished) {
-                if (review?.result?.parsed) {
-                    review.result.data.forEach((problemItem) => {
-                        if (problemItem.IsProblem) {
-                            problemNumber++;
-                        }
-                    });
-                }
+            if (review.state === review_1.ReviewState.Finished && review.result?.parsed) {
+                problemNumber = review.result.data.filter((problemItem) => problemItem.IsProblem).length;
             }
             if (file) {
                 file.total++;
@@ -70,8 +64,8 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
                 }
             }
             else {
-                result.push({
-                    path: review.selection.file,
+                resultMap.set(filePath, {
+                    path: filePath,
                     total: 1,
                     done: review.state === review_1.ReviewState.Finished ||
                         review.state === review_1.ReviewState.Error
@@ -81,7 +75,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
                 });
             }
         }
-        return result;
+        return Array.from(resultMap.values());
     }
     async getFileReviewList(filePath) {
         return this.reviewDataList.filter((review) => review.selection.file === filePath);
