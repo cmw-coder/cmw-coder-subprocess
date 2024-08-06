@@ -4915,7 +4915,9 @@ class LocalReviewHistoryManager {
         if (!fs.existsSync(filePath)) {
             return [];
         }
-        const content = await fs.promises.readFile(filePath, 'utf8');
+        const content = await fs.promises.readFile(filePath, {
+            encoding: 'utf-8',
+        });
         try {
             const parsedData = JSON.parse(content);
             res = parsedData.items;
@@ -4946,13 +4948,16 @@ class LocalReviewHistoryManager {
             items: [],
         };
         const filePath = path_1.default.join(this.localReviewHistoryDir, name + '_review.json');
-        if (fs.existsSync(filePath)) {
+        const isExist = await fs.promises.stat(filePath).catch(() => false);
+        if (isExist) {
             try {
-                const fileContent = await fs.promises.readFile(filePath, 'utf8');
+                const fileContent = await fs.promises.readFile(filePath, {
+                    encoding: 'utf-8',
+                });
                 fileParsedContent = JSON.parse(fileContent);
             }
             catch (e) {
-                this.proxyFn.log(`saveReviewItem ${filePath} error ${e}`);
+                this.proxyFn.log(`saveReviewItem ${filePath} error1 ${e}`);
             }
         }
         const existItemIndex = fileParsedContent.items.findIndex((i) => i.reviewId === item.reviewId);
@@ -4961,10 +4966,12 @@ class LocalReviewHistoryManager {
             fileParsedContent.items.splice(existItemIndex, 1);
         }
         fileParsedContent.items.push(item);
-        fs.promises
-            .writeFile(filePath, JSON.stringify(fileParsedContent))
+        return fs.promises
+            .writeFile(filePath, JSON.stringify(fileParsedContent), {
+            encoding: 'utf-8',
+        })
             .catch((e) => {
-            this.proxyFn.log(`saveReviewItem ${filePath} error ${e}`);
+            this.proxyFn.log(`saveReviewItem ${filePath} error2 ${e}`);
         });
     }
 }
