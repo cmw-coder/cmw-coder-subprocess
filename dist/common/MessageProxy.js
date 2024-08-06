@@ -79,10 +79,7 @@ class MessageToChildProxy {
             }),
         });
         this.childProcess = (0, child_process_1.fork)(this.scriptPath, [`--historyDir=${argv.historyDir}`], {
-            ...process.env,
-            // @ts-ignore
-            ELECTRON_RUN_AS_NODE: '',
-            useNodeIpc: '',
+            execArgv: ['--inspect']
         });
         console.log(`[${this.childProcess.pid}]  ${scriptPath}`);
         this.childProcess.on('close', (code) => {

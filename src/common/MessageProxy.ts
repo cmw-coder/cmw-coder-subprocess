@@ -112,10 +112,7 @@ export class MessageToChildProxy<
       this.scriptPath,
       [`--historyDir=${argv.historyDir}`],
       {
-        ...process.env,
-        // @ts-ignore
-        ELECTRON_RUN_AS_NODE: '',
-        useNodeIpc: '',
+        execArgv: ['--inspect']
       },
     );
     console.log(`[${this.childProcess.pid}]  ${scriptPath}`);
