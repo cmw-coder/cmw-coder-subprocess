@@ -13,8 +13,8 @@ const MessageProxy_1 = __webpack_require__(1);
 const yargs_1 = __importDefault(__webpack_require__(25));
 const helpers_1 = __webpack_require__(51);
 const LocalReviewHistoryManager_1 = __webpack_require__(52);
-const ReviewInstance_1 = __webpack_require__(53);
-const review_1 = __webpack_require__(54);
+const ReviewInstance_1 = __webpack_require__(54);
+const review_1 = __webpack_require__(55);
 const fs_1 = __webpack_require__(29);
 const web_tree_sitter_1 = __importDefault(__webpack_require__(56));
 const iconv_lite_1 = __webpack_require__(57);
@@ -4886,10 +4886,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LocalReviewHistoryManager = void 0;
 const path_1 = __importDefault(__webpack_require__(31));
 const fs = __importStar(__webpack_require__(29));
+const luxon_1 = __webpack_require__(53);
 class LocalReviewHistoryManager {
     constructor(localReviewHistoryDir, proxyFn) {
         this.localReviewHistoryDir = localReviewHistoryDir;
         this.proxyFn = proxyFn;
+        this.tempUpdateData = [];
+        this.updateTimer = undefined;
         this.checkLocalReviewHistoryDir();
     }
     checkLocalReviewHistoryDir() {
@@ -4942,16 +4945,20 @@ class LocalReviewHistoryManager {
         });
         return res;
     }
-    async saveReviewItem(name, item) {
+    _saveTempReviewData() {
+        if (this.tempUpdateData.length === 0) {
+            return;
+        }
         let fileParsedContent = {
             date: new Date().valueOf(),
             items: [],
         };
-        const filePath = path_1.default.join(this.localReviewHistoryDir, name + '_review.json');
-        const isExist = await fs.promises.stat(filePath).catch(() => false);
-        if (isExist) {
+        const now = luxon_1.DateTime.now();
+        const nowStr = now.toFormat('yyyy-MM-dd');
+        const filePath = path_1.default.join(this.localReviewHistoryDir, nowStr + '_review.json');
+        if (fs.existsSync(filePath)) {
             try {
-                const fileContent = await fs.promises.readFile(filePath, {
+                const fileContent = fs.readFileSync(filePath, {
                     encoding: 'utf-8',
                 });
                 fileParsedContent = JSON.parse(fileContent);
@@ -4960,19 +4967,38 @@ class LocalReviewHistoryManager {
                 this.proxyFn.log(`saveReviewItem ${filePath} error1 ${e}`);
             }
         }
-        const existItemIndex = fileParsedContent.items.findIndex((i) => i.reviewId === item.reviewId);
-        if (existItemIndex !== -1) {
-            // delete
-            fileParsedContent.items.splice(existItemIndex, 1);
+        for (let i = 0; i < this.tempUpdateData.length; i++) {
+            const item = this.tempUpdateData[i];
+            const existItemIndex = fileParsedContent.items.findIndex((i) => i.reviewId === item.reviewId);
+            if (existItemIndex !== -1) {
+                // delete
+                fileParsedContent.items.splice(existItemIndex, 1);
+            }
+            fileParsedContent.items.push(item);
         }
-        fileParsedContent.items.push(item);
-        return fs.promises
-            .writeFile(filePath, JSON.stringify(fileParsedContent), {
+        fs.writeFileSync(filePath, JSON.stringify(fileParsedContent), {
             encoding: 'utf-8',
-        })
-            .catch((e) => {
-            this.proxyFn.log(`saveReviewItem ${filePath} error2 ${e}`);
         });
+        this.tempUpdateData = [];
+    }
+    async saveReviewItem(item) {
+        if (this.updateTimer) {
+            clearTimeout(this.updateTimer);
+            this.updateTimer = undefined;
+        }
+        this.updateTimer = setTimeout(() => {
+            this._saveTempReviewData();
+        }, 1000);
+        const existedIndex = this.tempUpdateData.findIndex((i) => i.reviewId === item.reviewId);
+        if (existedIndex !== -1) {
+            this.tempUpdateData[existedIndex] = item;
+        }
+        else {
+            this.tempUpdateData.push(item);
+        }
+        if (this.tempUpdateData.length >= 10) {
+            this._saveTempReviewData();
+        }
     }
 }
 exports.LocalReviewHistoryManager = LocalReviewHistoryManager;
@@ -4980,259 +5006,6 @@ exports.LocalReviewHistoryManager = LocalReviewHistoryManager;
 
 /***/ }),
 /* 53 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ReviewInstance = void 0;
-const review_1 = __webpack_require__(54);
-const luxon_1 = __webpack_require__(55);
-const uuid_1 = __webpack_require__(2);
-const REFRESH_TIME = 3000;
-class ReviewInstance {
-    constructor(selection, extraData, proxyFn, localReviewHistoryManager) {
-        this.selection = selection;
-        this.extraData = extraData;
-        this.proxyFn = proxyFn;
-        this.localReviewHistoryManager = localReviewHistoryManager;
-        this.reviewId = (0, uuid_1.v4)();
-        this.serverTaskId = '';
-        this.state = review_1.ReviewState.Queue;
-        this.references = [];
-        this.feedback = review_1.Feedback.None;
-        this.errorInfo = '';
-        // 创建时间
-        this.createTime = luxon_1.DateTime.now().valueOf() / 1000;
-        // 开始运行时间
-        this.startTime = luxon_1.DateTime.now().valueOf() / 1000;
-        // 引用查找结束时间
-        this.referenceTime = luxon_1.DateTime.now().valueOf() / 1000;
-        // 流程终止时间
-        this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
-        this.isRunning = false;
-        this.onStart = () => { };
-        this.onUpdate = () => { };
-        this.onEnd = () => { };
-    }
-    async start() {
-        this.isRunning = true;
-        this.state = review_1.ReviewState.Ready;
-        this.startTime = luxon_1.DateTime.now().valueOf() / 1000;
-        this.onUpdate();
-        const appConfig = await this.proxyFn.getConfig();
-        this.references = await this.proxyFn.getReferences(this.selection);
-        this.state = review_1.ReviewState.References;
-        this.referenceTime = luxon_1.DateTime.now().valueOf() / 1000;
-        this.onUpdate();
-        try {
-            this.serverTaskId = await this.proxyFn.api_code_review({
-                productLine: appConfig.activeTemplate,
-                profileModel: appConfig.activeModel,
-                templateName: 'CodeReviewV1',
-                references: this.references,
-                target: {
-                    block: '',
-                    snippet: this.selection.content,
-                },
-                language: this.selection.language,
-            });
-            this.state = review_1.ReviewState.Start;
-            this.onUpdate();
-            this.timer = setInterval(() => {
-                this.refreshReviewState();
-            }, REFRESH_TIME);
-        }
-        catch (e) {
-            this.state = review_1.ReviewState.Error;
-            this.isRunning = false;
-            this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
-            this.errorInfo = e.message;
-            if (this.timer) {
-                clearInterval(this.timer);
-                this.timer = undefined;
-            }
-            this.onUpdate();
-            this.onEnd();
-        }
-        this.onStart();
-    }
-    async refreshReviewState() {
-        try {
-            this.state = await this.proxyFn.api_get_code_review_state(this.serverTaskId);
-            if (this.state === review_1.ReviewState.Third ||
-                this.state === review_1.ReviewState.Finished) {
-                clearInterval(this.timer);
-                this.isRunning = false;
-                await this.getReviewResult();
-                this.state = review_1.ReviewState.Finished;
-                this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
-                this.saveReviewData();
-                this.onUpdate();
-                this.onEnd();
-            }
-            if (this.state === review_1.ReviewState.Error) {
-                clearInterval(this.timer);
-                this.isRunning = false;
-                await this.getReviewResult();
-                this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
-                this.errorInfo = this.result ? this.result.originData : '';
-                this.saveReviewData();
-                this.onUpdate();
-                this.onEnd();
-            }
-        }
-        catch (error) {
-            if (this.timer) {
-                clearInterval(this.timer);
-            }
-            this.isRunning = false;
-            this.state = review_1.ReviewState.Error;
-            this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
-            this.errorInfo = error.message;
-            this.saveReviewData();
-            this.onUpdate();
-            this.onEnd();
-        }
-    }
-    async getReviewResult() {
-        this.result = await this.proxyFn.api_get_code_review_result(this.serverTaskId);
-    }
-    async saveReviewData() {
-        const reviewData = this.getReviewData();
-        const now = luxon_1.DateTime.now();
-        const nowStr = now.toFormat('yyyy-MM-dd');
-        return this.localReviewHistoryManager.saveReviewItem(nowStr, reviewData);
-    }
-    getReviewData() {
-        return {
-            reviewId: this.reviewId,
-            serverTaskId: this.serverTaskId,
-            state: this.state,
-            result: this.result,
-            references: this.references,
-            selection: this.selection,
-            feedback: this.feedback,
-            errorInfo: this.errorInfo,
-            extraData: this.extraData,
-            createTime: this.createTime,
-            startTime: this.startTime,
-            endTime: this.endTime,
-            referenceTime: this.referenceTime,
-            isRunning: this.isRunning,
-        };
-    }
-    async stop() {
-        clearInterval(this.timer);
-        if (this.state === review_1.ReviewState.Start) {
-            try {
-                await this.proxyFn.api_stop_review(this.serverTaskId);
-            }
-            catch (e) {
-                this.proxyFn.log('stopReview.failed', e);
-            }
-        }
-        this.state = review_1.ReviewState.Error;
-        this.errorInfo = 'USER STOPPED REVIEW TASK';
-        this.onUpdate();
-        this.onEnd();
-    }
-}
-exports.ReviewInstance = ReviewInstance;
-
-
-/***/ }),
-/* 54 */
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Feedback = exports.ReviewType = exports.reviewStateIconMap = exports.ReviewState = exports.SymbolType = void 0;
-var SymbolType;
-(function (SymbolType) {
-    SymbolType["Enum"] = "Enum";
-    SymbolType["Function"] = "Function";
-    SymbolType["Macro"] = "Macro";
-    SymbolType["Reference"] = "Reference";
-    SymbolType["Struct"] = "Struct";
-    SymbolType["Unknown"] = "Unknown";
-    SymbolType["Variable"] = "Variable";
-})(SymbolType || (exports.SymbolType = SymbolType = {}));
-var ReviewState;
-(function (ReviewState) {
-    ReviewState["Queue"] = "Queue";
-    ReviewState["Ready"] = "Ready";
-    ReviewState[ReviewState["References"] = 0] = "References";
-    ReviewState[ReviewState["Start"] = 1] = "Start";
-    /**
-     * @deprecated
-     */
-    ReviewState[ReviewState["First"] = 2] = "First";
-    /**
-     * @deprecated
-     */
-    ReviewState[ReviewState["Second"] = 3] = "Second";
-    /**
-     * @deprecated
-     */
-    ReviewState[ReviewState["Third"] = 4] = "Third";
-    ReviewState[ReviewState["Finished"] = 100] = "Finished";
-    ReviewState[ReviewState["Error"] = -1] = "Error";
-})(ReviewState || (exports.ReviewState = ReviewState = {}));
-exports.reviewStateIconMap = {
-    [ReviewState.Queue]: {
-        color: 'gray-6',
-        icon: 'mdi-human-queue',
-    },
-    [ReviewState.Ready]: {
-        color: 'blue-6',
-        icon: 'mdi-comment-text-outline',
-    },
-    [ReviewState.References]: {
-        color: 'cyan-6',
-        icon: 'mdi-robot-mower-outline',
-    },
-    [ReviewState.Start]: {
-        color: 'blue-6',
-        icon: 'mdi-clock-outline',
-    },
-    [ReviewState.Finished]: {
-        color: 'green-8',
-        icon: 'mdi-check-circle-outline',
-    },
-    [ReviewState.Error]: {
-        color: 'red-8',
-        icon: 'mdi-alert-circle-outline',
-    },
-    [ReviewState.First]: {
-        color: 'blue-6',
-        icon: 'mdi-comment-text-outline',
-    },
-    [ReviewState.Second]: {
-        color: 'blue-6',
-        icon: 'mdi-comment-text-outline',
-    },
-    [ReviewState.Third]: {
-        color: 'blue-6',
-        icon: 'mdi-comment-text-outline',
-    },
-};
-var ReviewType;
-(function (ReviewType) {
-    ReviewType["File"] = "File";
-    ReviewType["Function"] = "Function";
-})(ReviewType || (exports.ReviewType = ReviewType = {}));
-var Feedback;
-(function (Feedback) {
-    Feedback["None"] = "None";
-    Feedback["Helpful"] = "Helpful";
-    Feedback["NotHelpful"] = "NotHelpful";
-})(Feedback || (exports.Feedback = Feedback = {}));
-
-
-/***/ }),
-/* 55 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -12620,6 +12393,257 @@ exports.SystemZone = SystemZone;
 exports.VERSION = VERSION;
 exports.Zone = Zone;
 //# sourceMappingURL=luxon.js.map
+
+
+/***/ }),
+/* 54 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ReviewInstance = void 0;
+const review_1 = __webpack_require__(55);
+const luxon_1 = __webpack_require__(53);
+const uuid_1 = __webpack_require__(2);
+const REFRESH_TIME = 3000;
+class ReviewInstance {
+    constructor(selection, extraData, proxyFn, localReviewHistoryManager) {
+        this.selection = selection;
+        this.extraData = extraData;
+        this.proxyFn = proxyFn;
+        this.localReviewHistoryManager = localReviewHistoryManager;
+        this.reviewId = (0, uuid_1.v4)();
+        this.serverTaskId = '';
+        this.state = review_1.ReviewState.Queue;
+        this.references = [];
+        this.feedback = review_1.Feedback.None;
+        this.errorInfo = '';
+        // 创建时间
+        this.createTime = luxon_1.DateTime.now().valueOf() / 1000;
+        // 开始运行时间
+        this.startTime = luxon_1.DateTime.now().valueOf() / 1000;
+        // 引用查找结束时间
+        this.referenceTime = luxon_1.DateTime.now().valueOf() / 1000;
+        // 流程终止时间
+        this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
+        this.isRunning = false;
+        this.onStart = () => { };
+        this.onUpdate = () => { };
+        this.onEnd = () => { };
+    }
+    async start() {
+        this.isRunning = true;
+        this.state = review_1.ReviewState.Ready;
+        this.startTime = luxon_1.DateTime.now().valueOf() / 1000;
+        this.onUpdate();
+        const appConfig = await this.proxyFn.getConfig();
+        this.references = await this.proxyFn.getReferences(this.selection);
+        this.state = review_1.ReviewState.References;
+        this.referenceTime = luxon_1.DateTime.now().valueOf() / 1000;
+        this.onUpdate();
+        try {
+            this.serverTaskId = await this.proxyFn.api_code_review({
+                productLine: appConfig.activeTemplate,
+                profileModel: appConfig.activeModel,
+                templateName: 'CodeReviewV1',
+                references: this.references,
+                target: {
+                    block: '',
+                    snippet: this.selection.content,
+                },
+                language: this.selection.language,
+            });
+            this.state = review_1.ReviewState.Start;
+            this.onUpdate();
+            this.timer = setInterval(() => {
+                this.refreshReviewState();
+            }, REFRESH_TIME);
+        }
+        catch (e) {
+            this.state = review_1.ReviewState.Error;
+            this.isRunning = false;
+            this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
+            this.errorInfo = e.message;
+            if (this.timer) {
+                clearInterval(this.timer);
+                this.timer = undefined;
+            }
+            this.onUpdate();
+            this.onEnd();
+        }
+        this.onStart();
+    }
+    async refreshReviewState() {
+        try {
+            this.state = await this.proxyFn.api_get_code_review_state(this.serverTaskId);
+            if (this.state === review_1.ReviewState.Third ||
+                this.state === review_1.ReviewState.Finished) {
+                clearInterval(this.timer);
+                this.isRunning = false;
+                await this.getReviewResult();
+                this.state = review_1.ReviewState.Finished;
+                this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
+                this.saveReviewData();
+                this.onUpdate();
+                this.onEnd();
+            }
+            if (this.state === review_1.ReviewState.Error) {
+                clearInterval(this.timer);
+                this.isRunning = false;
+                await this.getReviewResult();
+                this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
+                this.errorInfo = this.result ? this.result.originData : '';
+                this.saveReviewData();
+                this.onUpdate();
+                this.onEnd();
+            }
+        }
+        catch (error) {
+            if (this.timer) {
+                clearInterval(this.timer);
+            }
+            this.isRunning = false;
+            this.state = review_1.ReviewState.Error;
+            this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
+            this.errorInfo = error.message;
+            this.saveReviewData();
+            this.onUpdate();
+            this.onEnd();
+        }
+    }
+    async getReviewResult() {
+        this.result = await this.proxyFn.api_get_code_review_result(this.serverTaskId);
+    }
+    async saveReviewData() {
+        const reviewData = this.getReviewData();
+        return this.localReviewHistoryManager.saveReviewItem(reviewData);
+    }
+    getReviewData() {
+        return {
+            reviewId: this.reviewId,
+            serverTaskId: this.serverTaskId,
+            state: this.state,
+            result: this.result,
+            references: this.references,
+            selection: this.selection,
+            feedback: this.feedback,
+            errorInfo: this.errorInfo,
+            extraData: this.extraData,
+            createTime: this.createTime,
+            startTime: this.startTime,
+            endTime: this.endTime,
+            referenceTime: this.referenceTime,
+            isRunning: this.isRunning,
+        };
+    }
+    async stop() {
+        clearInterval(this.timer);
+        if (this.state === review_1.ReviewState.Start) {
+            try {
+                await this.proxyFn.api_stop_review(this.serverTaskId);
+            }
+            catch (e) {
+                this.proxyFn.log('stopReview.failed', e);
+            }
+        }
+        this.state = review_1.ReviewState.Error;
+        this.errorInfo = 'USER STOPPED REVIEW TASK';
+        this.onUpdate();
+        this.onEnd();
+    }
+}
+exports.ReviewInstance = ReviewInstance;
+
+
+/***/ }),
+/* 55 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Feedback = exports.ReviewType = exports.reviewStateIconMap = exports.ReviewState = exports.SymbolType = void 0;
+var SymbolType;
+(function (SymbolType) {
+    SymbolType["Enum"] = "Enum";
+    SymbolType["Function"] = "Function";
+    SymbolType["Macro"] = "Macro";
+    SymbolType["Reference"] = "Reference";
+    SymbolType["Struct"] = "Struct";
+    SymbolType["Unknown"] = "Unknown";
+    SymbolType["Variable"] = "Variable";
+})(SymbolType || (exports.SymbolType = SymbolType = {}));
+var ReviewState;
+(function (ReviewState) {
+    ReviewState["Queue"] = "Queue";
+    ReviewState["Ready"] = "Ready";
+    ReviewState[ReviewState["References"] = 0] = "References";
+    ReviewState[ReviewState["Start"] = 1] = "Start";
+    /**
+     * @deprecated
+     */
+    ReviewState[ReviewState["First"] = 2] = "First";
+    /**
+     * @deprecated
+     */
+    ReviewState[ReviewState["Second"] = 3] = "Second";
+    /**
+     * @deprecated
+     */
+    ReviewState[ReviewState["Third"] = 4] = "Third";
+    ReviewState[ReviewState["Finished"] = 100] = "Finished";
+    ReviewState[ReviewState["Error"] = -1] = "Error";
+})(ReviewState || (exports.ReviewState = ReviewState = {}));
+exports.reviewStateIconMap = {
+    [ReviewState.Queue]: {
+        color: 'gray-6',
+        icon: 'mdi-human-queue',
+    },
+    [ReviewState.Ready]: {
+        color: 'blue-6',
+        icon: 'mdi-comment-text-outline',
+    },
+    [ReviewState.References]: {
+        color: 'cyan-6',
+        icon: 'mdi-robot-mower-outline',
+    },
+    [ReviewState.Start]: {
+        color: 'blue-6',
+        icon: 'mdi-clock-outline',
+    },
+    [ReviewState.Finished]: {
+        color: 'green-8',
+        icon: 'mdi-check-circle-outline',
+    },
+    [ReviewState.Error]: {
+        color: 'red-8',
+        icon: 'mdi-alert-circle-outline',
+    },
+    [ReviewState.First]: {
+        color: 'blue-6',
+        icon: 'mdi-comment-text-outline',
+    },
+    [ReviewState.Second]: {
+        color: 'blue-6',
+        icon: 'mdi-comment-text-outline',
+    },
+    [ReviewState.Third]: {
+        color: 'blue-6',
+        icon: 'mdi-comment-text-outline',
+    },
+};
+var ReviewType;
+(function (ReviewType) {
+    ReviewType["File"] = "File";
+    ReviewType["Function"] = "Function";
+})(ReviewType || (exports.ReviewType = ReviewType = {}));
+var Feedback;
+(function (Feedback) {
+    Feedback["None"] = "None";
+    Feedback["Helpful"] = "Helpful";
+    Feedback["NotHelpful"] = "NotHelpful";
+})(Feedback || (exports.Feedback = Feedback = {}));
 
 
 /***/ }),

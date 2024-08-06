@@ -29,10 +29,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LocalReviewHistoryManager = void 0;
 const path_1 = __importDefault(require("path"));
 const fs = __importStar(require("fs"));
+const luxon_1 = require("luxon");
 class LocalReviewHistoryManager {
     constructor(localReviewHistoryDir, proxyFn) {
         this.localReviewHistoryDir = localReviewHistoryDir;
         this.proxyFn = proxyFn;
+        this.tempUpdateData = [];
+        this.updateTimer = undefined;
         this.checkLocalReviewHistoryDir();
     }
     checkLocalReviewHistoryDir() {
@@ -85,16 +88,20 @@ class LocalReviewHistoryManager {
         });
         return res;
     }
-    async saveReviewItem(name, item) {
+    _saveTempReviewData() {
+        if (this.tempUpdateData.length === 0) {
+            return;
+        }
         let fileParsedContent = {
             date: new Date().valueOf(),
             items: [],
         };
-        const filePath = path_1.default.join(this.localReviewHistoryDir, name + '_review.json');
-        const isExist = await fs.promises.stat(filePath).catch(() => false);
-        if (isExist) {
+        const now = luxon_1.DateTime.now();
+        const nowStr = now.toFormat('yyyy-MM-dd');
+        const filePath = path_1.default.join(this.localReviewHistoryDir, nowStr + '_review.json');
+        if (fs.existsSync(filePath)) {
             try {
-                const fileContent = await fs.promises.readFile(filePath, {
+                const fileContent = fs.readFileSync(filePath, {
                     encoding: 'utf-8',
                 });
                 fileParsedContent = JSON.parse(fileContent);
@@ -103,19 +110,38 @@ class LocalReviewHistoryManager {
                 this.proxyFn.log(`saveReviewItem ${filePath} error1 ${e}`);
             }
         }
-        const existItemIndex = fileParsedContent.items.findIndex((i) => i.reviewId === item.reviewId);
-        if (existItemIndex !== -1) {
-            // delete
-            fileParsedContent.items.splice(existItemIndex, 1);
+        for (let i = 0; i < this.tempUpdateData.length; i++) {
+            const item = this.tempUpdateData[i];
+            const existItemIndex = fileParsedContent.items.findIndex((i) => i.reviewId === item.reviewId);
+            if (existItemIndex !== -1) {
+                // delete
+                fileParsedContent.items.splice(existItemIndex, 1);
+            }
+            fileParsedContent.items.push(item);
         }
-        fileParsedContent.items.push(item);
-        return fs.promises
-            .writeFile(filePath, JSON.stringify(fileParsedContent), {
+        fs.writeFileSync(filePath, JSON.stringify(fileParsedContent), {
             encoding: 'utf-8',
-        })
-            .catch((e) => {
-            this.proxyFn.log(`saveReviewItem ${filePath} error2 ${e}`);
         });
+        this.tempUpdateData = [];
+    }
+    async saveReviewItem(item) {
+        if (this.updateTimer) {
+            clearTimeout(this.updateTimer);
+            this.updateTimer = undefined;
+        }
+        this.updateTimer = setTimeout(() => {
+            this._saveTempReviewData();
+        }, 1000);
+        const existedIndex = this.tempUpdateData.findIndex((i) => i.reviewId === item.reviewId);
+        if (existedIndex !== -1) {
+            this.tempUpdateData[existedIndex] = item;
+        }
+        else {
+            this.tempUpdateData.push(item);
+        }
+        if (this.tempUpdateData.length >= 10) {
+            this._saveTempReviewData();
+        }
     }
 }
 exports.LocalReviewHistoryManager = LocalReviewHistoryManager;

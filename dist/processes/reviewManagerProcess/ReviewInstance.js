@@ -115,9 +115,7 @@ class ReviewInstance {
     }
     async saveReviewData() {
         const reviewData = this.getReviewData();
-        const now = luxon_1.DateTime.now();
-        const nowStr = now.toFormat('yyyy-MM-dd');
-        return this.localReviewHistoryManager.saveReviewItem(nowStr, reviewData);
+        return this.localReviewHistoryManager.saveReviewItem(reviewData);
     }
     getReviewData() {
         return {

@@ -2,8 +2,11 @@ import path from 'path';
 import * as fs from 'fs';
 import { ReviewFileData, ReviewData } from 'types/review';
 import { ReviewMasterHandler } from 'types/ReviewHandler';
+import { DateTime } from 'luxon';
 
 export class LocalReviewHistoryManager {
+  private tempUpdateData: ReviewData[] = [];
+  private updateTimer: NodeJS.Timeout | undefined = undefined;
   constructor(
     private readonly localReviewHistoryDir: string,
     private proxyFn: ReviewMasterHandler,
@@ -66,19 +69,23 @@ export class LocalReviewHistoryManager {
     return res;
   }
 
-  async saveReviewItem(name: string, item: ReviewData) {
+  private _saveTempReviewData() {
+    if (this.tempUpdateData.length === 0) {
+      return;
+    }
     let fileParsedContent: ReviewFileData = {
       date: new Date().valueOf(),
       items: [],
     };
+    const now = DateTime.now();
+    const nowStr = now.toFormat('yyyy-MM-dd');
     const filePath = path.join(
       this.localReviewHistoryDir,
-      name + '_review.json',
+      nowStr + '_review.json',
     );
-    const isExist = await fs.promises.stat(filePath).catch(() => false);
-    if (isExist) {
+    if (fs.existsSync(filePath)) {
       try {
-        const fileContent = await fs.promises.readFile(filePath, {
+        const fileContent = fs.readFileSync(filePath, {
           encoding: 'utf-8',
         });
         fileParsedContent = JSON.parse(fileContent);
@@ -86,20 +93,41 @@ export class LocalReviewHistoryManager {
         this.proxyFn.log(`saveReviewItem ${filePath} error1 ${e}`);
       }
     }
-    const existItemIndex = fileParsedContent.items.findIndex(
+    for (let i = 0; i < this.tempUpdateData.length; i++) {
+      const item = this.tempUpdateData[i];
+      const existItemIndex = fileParsedContent.items.findIndex(
+        (i) => i.reviewId === item.reviewId,
+      );
+      if (existItemIndex !== -1) {
+        // delete
+        fileParsedContent.items.splice(existItemIndex, 1);
+      }
+      fileParsedContent.items.push(item);
+    }
+    fs.writeFileSync(filePath, JSON.stringify(fileParsedContent), {
+      encoding: 'utf-8',
+    });
+    this.tempUpdateData = [];
+  }
+
+  async saveReviewItem(item: ReviewData) {
+    if (this.updateTimer) {
+      clearTimeout(this.updateTimer);
+      this.updateTimer = undefined;
+    }
+    this.updateTimer = setTimeout(() => {
+      this._saveTempReviewData();
+    }, 1000);
+    const existedIndex = this.tempUpdateData.findIndex(
       (i) => i.reviewId === item.reviewId,
     );
-    if (existItemIndex !== -1) {
-      // delete
-      fileParsedContent.items.splice(existItemIndex, 1);
+    if (existedIndex !== -1) {
+      this.tempUpdateData[existedIndex] = item;
+    } else {
+      this.tempUpdateData.push(item);
     }
-    fileParsedContent.items.push(item);
-    return fs.promises
-      .writeFile(filePath, JSON.stringify(fileParsedContent), {
-        encoding: 'utf-8',
-      })
-      .catch((e) => {
-        this.proxyFn.log(`saveReviewItem ${filePath} error2 ${e}`);
-      });
+    if (this.tempUpdateData.length >= 10) {
+      this._saveTempReviewData();
+    }
   }
 }
