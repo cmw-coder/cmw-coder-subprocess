@@ -15,6 +15,7 @@ import { LocalReviewHistoryManager } from 'common/LocalReviewHistoryManager';
 const REFRESH_TIME = 3000;
 
 export class ReviewInstance {
+  selection: Selection;
   timer?: NodeJS.Timeout;
   reviewId = uuidv4();
   serverTaskId = '';
@@ -37,11 +38,13 @@ export class ReviewInstance {
   onEnd = () => {};
 
   constructor(
-    private selection: Selection,
+    selection: Selection,
     private extraData: ExtraData,
     private proxyFn: ReviewMasterHandler,
     private localReviewHistoryManager: LocalReviewHistoryManager,
-  ) {}
+  ) {
+    this.selection = selection;
+  }
 
   async start() {
     this.isRunning = true;

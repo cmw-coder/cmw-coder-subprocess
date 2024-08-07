@@ -2,10 +2,10 @@ import { ExtraData, Selection, Feedback, Reference, ReviewData, ReviewResult, Re
 import { ReviewMasterHandler } from '../../types/ReviewHandler';
 import { LocalReviewHistoryManager } from '../../common/LocalReviewHistoryManager';
 export declare class ReviewInstance {
-    private selection;
     private extraData;
     private proxyFn;
     private localReviewHistoryManager;
+    selection: Selection;
     timer?: NodeJS.Timeout;
     reviewId: string;
     serverTaskId: string;

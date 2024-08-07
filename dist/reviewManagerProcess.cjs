@@ -35,18 +35,12 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         web_tree_sitter_1.default.init().then(() => (this._parserInitialized = true));
         this.proxyFn.log(`review process started ${process.pid}`);
     }
-    get runningReviewList() {
-        return this.activeReviewList.filter((review) => review.isRunning);
-    }
-    get reviewDataList() {
-        return this.activeReviewList.map((review) => review.getReviewData());
-    }
     async getReviewData() {
-        return this.reviewDataList;
+        return this.activeReviewList.map((review) => review.getReviewData());
     }
     async getReviewFileList() {
         const resultMap = new Map();
-        for (const review of this.reviewDataList) {
+        for (const review of this.activeReviewList) {
             const filePath = review.selection.file;
             let file = resultMap.get(filePath);
             let problemNumber = 0;
@@ -78,7 +72,13 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         return Array.from(resultMap.values());
     }
     async getFileReviewList(filePath) {
-        return this.reviewDataList.filter((review) => review.selection.file === filePath);
+        const reviewDataList = [];
+        for (const review of this.activeReviewList) {
+            if (review.selection.file === filePath) {
+                reviewDataList.push(review.getReviewData());
+            }
+        }
+        return reviewDataList;
     }
     async reviewProject({ projectDirPath, extraData, }) {
         this.isClearAll = false;
@@ -166,7 +166,8 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         };
         review.onEnd = () => {
             this.proxyFn.reviewDataUpdated(review.reviewId);
-            if (this.runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
+            const runningReviewList = this.activeReviewList.filter((review) => review.isRunning);
+            if (runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
                 // 跑下一个任务
                 const queueReviewList = this.activeReviewList.filter((_review) => _review.state === review_1.ReviewState.Queue);
                 if (queueReviewList.length > 0) {
@@ -175,7 +176,8 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
                 }
             }
         };
-        if (this.runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
+        const runningReviewList = this.activeReviewList.filter((review) => review.isRunning);
+        if (runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
             review.start();
         }
         this.proxyFn.reviewFileListUpdated();
@@ -208,8 +210,9 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
     }
     async clearReview() {
         this.proxyFn.log(`clear review`);
-        for (let i = 0; i < this.runningReviewList.length; i++) {
-            const review = this.runningReviewList[i];
+        const runningReviewList = this.activeReviewList.filter((review) => review.isRunning);
+        for (let i = 0; i < runningReviewList.length; i++) {
+            const review = runningReviewList[i];
             if (review.isRunning) {
                 await review.stop();
             }
@@ -12400,7 +12403,6 @@ const uuid_1 = __webpack_require__(2);
 const REFRESH_TIME = 3000;
 class ReviewInstance {
     constructor(selection, extraData, proxyFn, localReviewHistoryManager) {
-        this.selection = selection;
         this.extraData = extraData;
         this.proxyFn = proxyFn;
         this.localReviewHistoryManager = localReviewHistoryManager;
@@ -12422,6 +12424,7 @@ class ReviewInstance {
         this.onStart = () => { };
         this.onUpdate = () => { };
         this.onEnd = () => { };
+        this.selection = selection;
     }
     async start() {
         this.isRunning = true;

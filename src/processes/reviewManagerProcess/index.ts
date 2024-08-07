@@ -43,22 +43,14 @@ class ReviewProcess
     this.proxyFn.log(`review process started ${process.pid}`);
   }
 
-  get runningReviewList() {
-    return this.activeReviewList.filter((review) => review.isRunning);
-  }
-
-  get reviewDataList() {
-    return this.activeReviewList.map((review) => review.getReviewData());
-  }
-
   async getReviewData(): Promise<ReviewData[]> {
-    return this.reviewDataList;
+    return this.activeReviewList.map((review) => review.getReviewData());
   }
 
   async getReviewFileList(): Promise<ReviewFileItem[]> {
     const resultMap: Map<string, ReviewFileItem> = new Map();
 
-    for (const review of this.reviewDataList) {
+    for (const review of this.activeReviewList) {
       const filePath = review.selection.file;
       let file = resultMap.get(filePath);
       let problemNumber = 0;
@@ -98,9 +90,13 @@ class ReviewProcess
   }
 
   async getFileReviewList(filePath: string) {
-    return this.reviewDataList.filter(
-      (review) => review.selection.file === filePath,
-    );
+    const reviewDataList = [];
+    for (const review of this.activeReviewList) {
+      if (review.selection.file === filePath) {
+        reviewDataList.push(review.getReviewData());
+      }
+    }
+    return reviewDataList;
   }
 
   async reviewProject({
@@ -225,7 +221,10 @@ class ReviewProcess
     };
     review.onEnd = () => {
       this.proxyFn.reviewDataUpdated(review.reviewId);
-      if (this.runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
+      const runningReviewList = this.activeReviewList.filter(
+        (review) => review.isRunning,
+      );
+      if (runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
         // 跑下一个任务
         const queueReviewList = this.activeReviewList.filter(
           (_review) => _review.state === ReviewState.Queue,
@@ -236,7 +235,10 @@ class ReviewProcess
         }
       }
     };
-    if (this.runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
+    const runningReviewList = this.activeReviewList.filter(
+      (review) => review.isRunning,
+    );
+    if (runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
       review.start();
     }
     this.proxyFn.reviewFileListUpdated();
@@ -288,8 +290,11 @@ class ReviewProcess
 
   async clearReview(): Promise<any> {
     this.proxyFn.log(`clear review`);
-    for (let i = 0; i < this.runningReviewList.length; i++) {
-      const review = this.runningReviewList[i];
+    const runningReviewList = this.activeReviewList.filter(
+      (review) => review.isRunning,
+    );
+    for (let i = 0; i < runningReviewList.length; i++) {
+      const review = runningReviewList[i];
       if (review.isRunning) {
         await review.stop();
       }

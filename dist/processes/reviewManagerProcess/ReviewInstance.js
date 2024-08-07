@@ -7,7 +7,6 @@ const uuid_1 = require("uuid");
 const REFRESH_TIME = 3000;
 class ReviewInstance {
     constructor(selection, extraData, proxyFn, localReviewHistoryManager) {
-        this.selection = selection;
         this.extraData = extraData;
         this.proxyFn = proxyFn;
         this.localReviewHistoryManager = localReviewHistoryManager;
@@ -29,6 +28,7 @@ class ReviewInstance {
         this.onStart = () => { };
         this.onUpdate = () => { };
         this.onEnd = () => { };
+        this.selection = selection;
     }
     async start() {
         this.isRunning = true;
