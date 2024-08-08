@@ -90,7 +90,6 @@ export class ReviewInstance {
   }
 
   async refreshReviewState() {
-    this.proxyFn.log(`ReviewInstance.refreshReviewState ${this.serverTaskId}`);
     try {
       this.state = await this.proxyFn.api_get_code_review_state(
         this.serverTaskId,

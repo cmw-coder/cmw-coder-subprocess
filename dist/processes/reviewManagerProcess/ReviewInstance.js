@@ -74,7 +74,6 @@ class ReviewInstance {
         this.onStart();
     }
     async refreshReviewState() {
-        this.proxyFn.log(`ReviewInstance.refreshReviewState ${this.serverTaskId}`);
         try {
             this.state = await this.proxyFn.api_get_code_review_state(this.serverTaskId);
             if (this.state === review_1.ReviewState.Third ||
