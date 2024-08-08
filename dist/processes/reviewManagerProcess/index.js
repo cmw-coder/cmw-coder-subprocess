@@ -196,7 +196,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         const fileReviewList = this.activeReviewList.filter((review) => review.selection.file === filePath);
         this.activeReviewList = this.activeReviewList.filter((review) => review.selection.file !== filePath);
         for (let i = 0; i < fileReviewList.length; i++) {
-            const review = this.activeReviewList[i];
+            const review = fileReviewList[i];
             if (review.isRunning) {
                 review.stop();
             }

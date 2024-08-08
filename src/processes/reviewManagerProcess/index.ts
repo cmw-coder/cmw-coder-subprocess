@@ -275,7 +275,7 @@ class ReviewProcess
     );
 
     for (let i = 0; i < fileReviewList.length; i++) {
-      const review = this.activeReviewList[i];
+      const review = fileReviewList[i];
       if (review.isRunning) {
         review.stop();
       }
