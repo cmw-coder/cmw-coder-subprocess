@@ -74,6 +74,7 @@ class ReviewInstance {
         this.onStart();
     }
     async refreshReviewState() {
+        this.proxyFn.log(`ReviewInstance.refreshReviewState ${this.serverTaskId}`);
         try {
             this.state = await this.proxyFn.api_get_code_review_state(this.serverTaskId);
             if (this.state === review_1.ReviewState.Third ||
@@ -139,7 +140,10 @@ class ReviewInstance {
     async stop() {
         this.proxyFn.log('ReviewInstance.stop');
         this.isRunning = false;
-        clearInterval(this.timer);
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = undefined;
+        }
         if (this.state === review_1.ReviewState.Start ||
             this.state === review_1.ReviewState.First ||
             this.state === review_1.ReviewState.Second ||

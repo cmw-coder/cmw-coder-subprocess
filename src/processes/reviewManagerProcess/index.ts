@@ -260,9 +260,26 @@ class ReviewProcess
       (review) => review.reviewId === reviewId,
     );
     if (reviewIndex !== -1) {
-      this.activeReviewList[reviewIndex].stop();
+      await this.activeReviewList[reviewIndex].stop();
     }
     this.activeReviewList.splice(reviewIndex, 1);
+  }
+
+  async delReviewByFile(filePath: string): Promise<any> {
+    this.proxyFn.log(`del review by file: ${filePath}`);
+    const fileReviewList = this.activeReviewList.filter(
+      (review) => review.selection.file === filePath,
+    );
+    this.activeReviewList = this.activeReviewList.filter(
+      (review) => review.selection.file !== filePath,
+    );
+
+    for (let i = 0; i < fileReviewList.length; i++) {
+      const review = this.activeReviewList[i];
+      if (review.isRunning) {
+        review.stop();
+      }
+    }
   }
 
   async retryReview(reviewId: string): Promise<any> {

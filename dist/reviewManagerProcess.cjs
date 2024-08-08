@@ -193,9 +193,20 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this.proxyFn.log(`del review: ${reviewId}`);
         const reviewIndex = this.activeReviewList.findIndex((review) => review.reviewId === reviewId);
         if (reviewIndex !== -1) {
-            this.activeReviewList[reviewIndex].stop();
+            await this.activeReviewList[reviewIndex].stop();
         }
         this.activeReviewList.splice(reviewIndex, 1);
+    }
+    async delReviewByFile(filePath) {
+        this.proxyFn.log(`del review by file: ${filePath}`);
+        const fileReviewList = this.activeReviewList.filter((review) => review.selection.file === filePath);
+        this.activeReviewList = this.activeReviewList.filter((review) => review.selection.file !== filePath);
+        for (let i = 0; i < fileReviewList.length; i++) {
+            const review = this.activeReviewList[i];
+            if (review.isRunning) {
+                review.stop();
+            }
+        }
     }
     async retryReview(reviewId) {
         this.proxyFn.log(`retry review: ${reviewId}`);
@@ -12477,6 +12488,7 @@ class ReviewInstance {
         this.onStart();
     }
     async refreshReviewState() {
+        this.proxyFn.log(`ReviewInstance.refreshReviewState ${this.serverTaskId}`);
         try {
             this.state = await this.proxyFn.api_get_code_review_state(this.serverTaskId);
             if (this.state === review_1.ReviewState.Third ||
@@ -12542,7 +12554,10 @@ class ReviewInstance {
     async stop() {
         this.proxyFn.log('ReviewInstance.stop');
         this.isRunning = false;
-        clearInterval(this.timer);
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = undefined;
+        }
         if (this.state === review_1.ReviewState.Start ||
             this.state === review_1.ReviewState.First ||
             this.state === review_1.ReviewState.Second ||

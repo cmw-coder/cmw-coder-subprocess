@@ -41,6 +41,7 @@ export interface ReviewChildHandler {
   }): Promise<any>;
   getReviewData(): Promise<ReviewData[]>;
   delReview(reviewId: string): Promise<any>;
+  delReviewByFile(filePath: string): Promise<any>;
   setReviewFeedback(data: {
     serverTaskId: string;
     userId: string;
