@@ -185,11 +185,11 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
     }
     async delReview(reviewId) {
         this.proxyFn.log(`del review: ${reviewId}`);
-        const review = this.activeReviewList.find((review) => review.reviewId === reviewId);
-        if (review) {
-            review.stop();
+        const reviewIndex = this.activeReviewList.findIndex((review) => review.reviewId === reviewId);
+        if (reviewIndex !== -1) {
+            this.activeReviewList[reviewIndex].stop();
         }
-        this.activeReviewList = this.activeReviewList.filter((review) => review.reviewId !== reviewId);
+        this.activeReviewList.splice(reviewIndex, 1);
     }
     async retryReview(reviewId) {
         this.proxyFn.log(`retry review: ${reviewId}`);
@@ -200,7 +200,14 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         }
     }
     async setReviewFeedback(data) {
-        this.proxyFn.log(`setReviewFeedback: ${data.reviewId} ${data.feedback} ${data.comment}`);
+        this.proxyFn.api_feedback_review(data);
+        const review = this.activeReviewList.find((review) => review.serverTaskId === data.serverTaskId);
+        if (review) {
+            review.feedback = data.feedback;
+            review.comment = data.comment;
+            review.saveReviewData();
+            review.onUpdate();
+        }
     }
     async clearReview() {
         this.proxyFn.log(`clear review`);

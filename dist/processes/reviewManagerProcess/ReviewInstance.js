@@ -15,6 +15,7 @@ class ReviewInstance {
         this.state = review_1.ReviewState.Queue;
         this.references = [];
         this.feedback = review_1.Feedback.None;
+        this.comment = '';
         this.errorInfo = '';
         // 创建时间
         this.createTime = luxon_1.DateTime.now().valueOf() / 1000;
@@ -136,8 +137,13 @@ class ReviewInstance {
         };
     }
     async stop() {
+        this.proxyFn.log('ReviewInstance.stop');
+        this.isRunning = false;
         clearInterval(this.timer);
-        if (this.state === review_1.ReviewState.Start) {
+        if (this.state === review_1.ReviewState.Start ||
+            this.state === review_1.ReviewState.First ||
+            this.state === review_1.ReviewState.Second ||
+            this.state === review_1.ReviewState.Third) {
             try {
                 await this.proxyFn.api_stop_review(this.serverTaskId);
             }

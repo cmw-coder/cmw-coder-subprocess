@@ -42,9 +42,11 @@ export interface ReviewChildHandler {
   getReviewData(): Promise<ReviewData[]>;
   delReview(reviewId: string): Promise<any>;
   setReviewFeedback(data: {
-    reviewId: string;
-    feedback: string;
-    comment?: string;
+    serverTaskId: string;
+    userId: string;
+    feedback: Feedback;
+    timestamp: number;
+    comment: string;
   }): Promise<any>;
   retryReview(reviewId: string): Promise<any>;
   stopReview(reviewId: string): Promise<any>;

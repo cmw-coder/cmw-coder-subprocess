@@ -107,6 +107,7 @@ export interface ReviewData {
     startTime: number;
     endTime: number;
     referenceTime: number;
+    comment?: string;
 }
 export interface ReviewFileData {
     date: number;

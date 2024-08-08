@@ -23,6 +23,7 @@ export class ReviewInstance {
   result?: ReviewResult;
   references: Reference[] = [];
   feedback = Feedback.None;
+  comment = '';
   errorInfo = '';
   // 创建时间
   createTime = DateTime.now().valueOf() / 1000;
@@ -161,8 +162,15 @@ export class ReviewInstance {
   }
 
   async stop() {
+    this.proxyFn.log('ReviewInstance.stop');
+    this.isRunning = false;
     clearInterval(this.timer);
-    if (this.state === ReviewState.Start) {
+    if (
+      this.state === ReviewState.Start ||
+      this.state === ReviewState.First ||
+      this.state === ReviewState.Second ||
+      this.state === ReviewState.Third
+    ) {
       try {
         await this.proxyFn.api_stop_review(this.serverTaskId);
       } catch (e) {

@@ -191,11 +191,11 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
     }
     async delReview(reviewId) {
         this.proxyFn.log(`del review: ${reviewId}`);
-        const review = this.activeReviewList.find((review) => review.reviewId === reviewId);
-        if (review) {
-            review.stop();
+        const reviewIndex = this.activeReviewList.findIndex((review) => review.reviewId === reviewId);
+        if (reviewIndex !== -1) {
+            this.activeReviewList[reviewIndex].stop();
         }
-        this.activeReviewList = this.activeReviewList.filter((review) => review.reviewId !== reviewId);
+        this.activeReviewList.splice(reviewIndex, 1);
     }
     async retryReview(reviewId) {
         this.proxyFn.log(`retry review: ${reviewId}`);
@@ -206,7 +206,14 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         }
     }
     async setReviewFeedback(data) {
-        this.proxyFn.log(`setReviewFeedback: ${data.reviewId} ${data.feedback} ${data.comment}`);
+        this.proxyFn.api_feedback_review(data);
+        const review = this.activeReviewList.find((review) => review.serverTaskId === data.serverTaskId);
+        if (review) {
+            review.feedback = data.feedback;
+            review.comment = data.comment;
+            review.saveReviewData();
+            review.onUpdate();
+        }
     }
     async clearReview() {
         this.proxyFn.log(`clear review`);
@@ -12411,6 +12418,7 @@ class ReviewInstance {
         this.state = review_1.ReviewState.Queue;
         this.references = [];
         this.feedback = review_1.Feedback.None;
+        this.comment = '';
         this.errorInfo = '';
         // 创建时间
         this.createTime = luxon_1.DateTime.now().valueOf() / 1000;
@@ -12532,8 +12540,13 @@ class ReviewInstance {
         };
     }
     async stop() {
+        this.proxyFn.log('ReviewInstance.stop');
+        this.isRunning = false;
         clearInterval(this.timer);
-        if (this.state === review_1.ReviewState.Start) {
+        if (this.state === review_1.ReviewState.Start ||
+            this.state === review_1.ReviewState.First ||
+            this.state === review_1.ReviewState.Second ||
+            this.state === review_1.ReviewState.Third) {
             try {
                 await this.proxyFn.api_stop_review(this.serverTaskId);
             }

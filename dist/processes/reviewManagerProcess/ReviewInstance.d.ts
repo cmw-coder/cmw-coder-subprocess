@@ -13,6 +13,7 @@ export declare class ReviewInstance {
     result?: ReviewResult;
     references: Reference[];
     feedback: Feedback;
+    comment: string;
     errorInfo: string;
     createTime: number;
     startTime: number;

@@ -256,15 +256,13 @@ class ReviewProcess
 
   async delReview(reviewId: string) {
     this.proxyFn.log(`del review: ${reviewId}`);
-    const review = this.activeReviewList.find(
+    const reviewIndex = this.activeReviewList.findIndex(
       (review) => review.reviewId === reviewId,
     );
-    if (review) {
-      review.stop();
+    if (reviewIndex !== -1) {
+      this.activeReviewList[reviewIndex].stop();
     }
-    this.activeReviewList = this.activeReviewList.filter(
-      (review) => review.reviewId !== reviewId,
-    );
+    this.activeReviewList.splice(reviewIndex, 1);
   }
 
   async retryReview(reviewId: string): Promise<any> {
@@ -279,13 +277,22 @@ class ReviewProcess
   }
 
   async setReviewFeedback(data: {
-    reviewId: string;
+    serverTaskId: string;
+    userId: string;
     feedback: Feedback;
-    comment?: string;
+    timestamp: number;
+    comment: string;
   }): Promise<any> {
-    this.proxyFn.log(
-      `setReviewFeedback: ${data.reviewId} ${data.feedback} ${data.comment}`,
+    this.proxyFn.api_feedback_review(data);
+    const review = this.activeReviewList.find(
+      (review) => review.serverTaskId === data.serverTaskId,
     );
+    if (review) {
+      review.feedback = data.feedback;
+      review.comment = data.comment;
+      review.saveReviewData();
+      review.onUpdate();
+    }
   }
 
   async clearReview(): Promise<any> {
