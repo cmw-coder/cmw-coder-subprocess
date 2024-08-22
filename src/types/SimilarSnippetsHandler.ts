@@ -2,7 +2,7 @@ import { SimilarSnippet } from 'types/similarSnippets';
 import { Position } from 'types/master';
 
 export interface SimilarSnippetsMasterHandler {
-  log(data: string): Promise<void>;
+  log(...data: any[]): Promise<void>;
 }
 
 export interface SimilarSnippetsHandler {

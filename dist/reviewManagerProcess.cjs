@@ -265,7 +265,7 @@ class MessageToMasterProxy {
         this.proxyFn = new Proxy({}, {
             get: (_, functionName) => (...payloads) => this.sendMessage({
                 key: functionName,
-                data: payloads[0],
+                data: payloads,
             }),
         });
         process.on('message', this.receivedMessage.bind(this));
@@ -304,7 +304,7 @@ class MessageToMasterProxy {
             // @ts-ignore
             const fn = this[key];
             if (typeof fn === 'function') {
-                const result = await fn.bind(this)(data);
+                const result = await fn.bind(this)(...data);
                 this.sendMessage({
                     id,
                     data: result,
@@ -330,7 +330,7 @@ class MessageToChildProxy {
         this.proxyFn = new Proxy({}, {
             get: (_, functionName) => (...payloads) => this.sendMessage({
                 key: functionName,
-                data: payloads[0],
+                data: payloads,
             }),
         });
         this.childProcess = (0, child_process_1.fork)(this.scriptPath, arg, {
@@ -379,7 +379,7 @@ class MessageToChildProxy {
             // @ts-ignore
             const fn = this[key];
             if (typeof fn === 'function') {
-                const result = await fn.bind(this)(data);
+                const result = await fn.bind(this)(...data);
                 this.sendMessage({
                     id,
                     data: result,

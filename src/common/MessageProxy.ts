@@ -22,7 +22,7 @@ export class MessageToMasterProxy<
         (...payloads: never[]) =>
           this.sendMessage({
             key: functionName,
-            data: payloads[0],
+            data: payloads,
           }),
     },
   ) as T;
@@ -64,7 +64,7 @@ export class MessageToMasterProxy<
       // @ts-ignore
       const fn = this[key];
       if (typeof fn === 'function') {
-        const result = await fn.bind(this)(data);
+        const result = await fn.bind(this)(...data);
         this.sendMessage({
           id,
           data: result,
@@ -98,7 +98,7 @@ export class MessageToChildProxy<
         (...payloads: never[]) =>
           this.sendMessage({
             key: functionName,
-            data: payloads[0],
+            data: payloads,
           }),
     },
   ) as T;
@@ -161,7 +161,7 @@ export class MessageToChildProxy<
       // @ts-ignore
       const fn = this[key];
       if (typeof fn === 'function') {
-        const result = await fn.bind(this)(data);
+        const result = await fn.bind(this)(...data);
         this.sendMessage({
           id,
           data: result,

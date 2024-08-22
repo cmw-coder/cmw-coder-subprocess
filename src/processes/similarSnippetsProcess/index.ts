@@ -31,7 +31,7 @@ class SimilarSnippetsProcess
 
   enableSimilarSnippet() {
     this._slowRecentFiles = undefined;
-    this.proxyFn.log('PromptExtractor.getSimilarSnippets.enable');
+    this.proxyFn.log('getSimilarSnippets.enable');
   }
 
   async getSimilarSnippets({
@@ -47,9 +47,8 @@ class SimilarSnippetsProcess
     functionSuffix: string;
     recentFiles: string[];
   }): Promise<SimilarSnippet[]> {
-    this.proxyFn.log(
-      `getSimilarSnippets: file: ${file}, recentFiles: ${recentFiles.join(',')}`,
-    );
+    this.proxyFn.log('getSimilarSnippets: file', file);
+    this.proxyFn.log('getSimilarSnippets: recentFiles', recentFiles);
     if (this._slowRecentFiles) {
       if (
         !this._slowRecentFiles.some(
@@ -90,7 +89,8 @@ class SimilarSnippetsProcess
       functionPrefix + functionSuffix,
     );
     this.proxyFn.log(
-      `PromptExtractor.getSimilarSnippets.referenceSnippetLines: ${referenceSnippetLines.join('\n')}`,
+      'getSimilarSnippets.referenceSnippetLines:',
+      referenceSnippetLines,
     );
 
     tabContentsWithoutComments.forEach(({ path, lines }) => {
@@ -122,9 +122,7 @@ class SimilarSnippetsProcess
 
     const endTime = Date.now();
     if (endTime - startTime > 1000) {
-      this.proxyFn.log(
-        `PromptExtractor.getSimilarSnippets.disable: ${endTime - startTime}`,
-      );
+      this.proxyFn.log(`getSimilarSnippets.disable: ${endTime - startTime}`);
       this._slowRecentFiles = recentFiles;
     }
 

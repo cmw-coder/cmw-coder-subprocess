@@ -17,7 +17,7 @@ class MessageToMasterProxy {
         this.proxyFn = new Proxy({}, {
             get: (_, functionName) => (...payloads) => this.sendMessage({
                 key: functionName,
-                data: payloads[0],
+                data: payloads,
             }),
         });
         process.on('message', this.receivedMessage.bind(this));
@@ -56,7 +56,7 @@ class MessageToMasterProxy {
             // @ts-ignore
             const fn = this[key];
             if (typeof fn === 'function') {
-                const result = await fn.bind(this)(data);
+                const result = await fn.bind(this)(...data);
                 this.sendMessage({
                     id,
                     data: result,
@@ -82,7 +82,7 @@ class MessageToChildProxy {
         this.proxyFn = new Proxy({}, {
             get: (_, functionName) => (...payloads) => this.sendMessage({
                 key: functionName,
-                data: payloads[0],
+                data: payloads,
             }),
         });
         this.childProcess = (0, child_process_1.fork)(this.scriptPath, arg, {
@@ -131,7 +131,7 @@ class MessageToChildProxy {
             // @ts-ignore
             const fn = this[key];
             if (typeof fn === 'function') {
-                const result = await fn.bind(this)(data);
+                const result = await fn.bind(this)(...data);
                 this.sendMessage({
                     id,
                     data: result,
@@ -4485,10 +4485,11 @@ class SimilarSnippetsProcess extends MessageProxy_1.MessageToMasterProxy {
     }
     enableSimilarSnippet() {
         this._slowRecentFiles = undefined;
-        this.proxyFn.log('PromptExtractor.getSimilarSnippets.enable');
+        this.proxyFn.log('getSimilarSnippets.enable');
     }
     async getSimilarSnippets({ file, position, functionPrefix, functionSuffix, recentFiles, }) {
-        this.proxyFn.log(`getSimilarSnippets: file: ${file}, recentFiles: ${recentFiles.join(',')}`);
+        this.proxyFn.log('getSimilarSnippets: file', file);
+        this.proxyFn.log('getSimilarSnippets: recentFiles', recentFiles);
         if (this._slowRecentFiles) {
             if (!this._slowRecentFiles.some((slowFile) => !recentFiles.includes(slowFile))) {
                 return [];
@@ -4515,7 +4516,7 @@ class SimilarSnippetsProcess extends MessageProxy_1.MessageToMasterProxy {
         });
         const similarSnippets = Array();
         const referenceSnippetLines = (0, utils_1.separateTextByLine)(functionPrefix + functionSuffix);
-        this.proxyFn.log(`PromptExtractor.getSimilarSnippets.referenceSnippetLines: ${referenceSnippetLines.join('\n')}`);
+        this.proxyFn.log('getSimilarSnippets.referenceSnippetLines:', referenceSnippetLines);
         tabContentsWithoutComments.forEach(({ path, lines }) => {
             const { score, startLine } = (0, utils_1.getMostSimilarSnippetStartLine)(lines.map((line) => (0, utils_1.tokenize)(line, [
                 constants_1.IGNORE_RESERVED_KEYWORDS,
@@ -4537,7 +4538,7 @@ class SimilarSnippetsProcess extends MessageProxy_1.MessageToMasterProxy {
         });
         const endTime = Date.now();
         if (endTime - startTime > 1000) {
-            this.proxyFn.log(`PromptExtractor.getSimilarSnippets.disable: ${endTime - startTime}`);
+            this.proxyFn.log(`getSimilarSnippets.disable: ${endTime - startTime}`);
             this._slowRecentFiles = recentFiles;
         }
         return similarSnippets
