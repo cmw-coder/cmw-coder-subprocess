@@ -24,6 +24,11 @@ class SimilarSnippetsProcess
 {
   private _slowRecentFiles?: string[];
 
+  constructor() {
+    super();
+    this.proxyFn.log(`similarSnippets process started ${process.pid}`);
+  }
+
   enableSimilarSnippet() {
     this._slowRecentFiles = undefined;
     this.proxyFn.log('PromptExtractor.getSimilarSnippets.enable');
