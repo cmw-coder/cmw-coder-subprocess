@@ -13,7 +13,7 @@ class SimilarSnippetsProcess extends MessageProxy_1.MessageToMasterProxy {
         this.proxyFn.log('PromptExtractor.getSimilarSnippets.enable');
     }
     async getSimilarSnippets({ file, position, functionPrefix, functionSuffix, recentFiles, }) {
-        this.proxyFn.log(`getSimilarSnippets: file: ${file}, recentFiles: ${recentFiles}`);
+        this.proxyFn.log(`getSimilarSnippets: file: ${file}, recentFiles: ${recentFiles.join('========================')}`);
         if (this._slowRecentFiles) {
             if (!this._slowRecentFiles.some((slowFile) => !recentFiles.includes(slowFile))) {
                 return [];
@@ -40,7 +40,7 @@ class SimilarSnippetsProcess extends MessageProxy_1.MessageToMasterProxy {
         });
         const similarSnippets = Array();
         const referenceSnippetLines = (0, utils_1.separateTextByLine)(functionPrefix + functionSuffix);
-        this.proxyFn.log(`PromptExtractor.getSimilarSnippets: ${referenceSnippetLines}`);
+        this.proxyFn.log(`PromptExtractor.getSimilarSnippets.referenceSnippetLines: ${referenceSnippetLines.join('========================')}`);
         tabContentsWithoutComments.forEach(({ path, lines }) => {
             const { score, startLine } = (0, utils_1.getMostSimilarSnippetStartLine)(lines.map((line) => (0, utils_1.tokenize)(line, [
                 constants_1.IGNORE_RESERVED_KEYWORDS,

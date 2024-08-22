@@ -48,7 +48,7 @@ class SimilarSnippetsProcess
     recentFiles: string[];
   }): Promise<SimilarSnippet[]> {
     this.proxyFn.log(
-      `getSimilarSnippets: file: ${file}, recentFiles: ${recentFiles}`,
+      `getSimilarSnippets: file: ${file}, recentFiles: ${recentFiles.join('========================')}`,
     );
     if (this._slowRecentFiles) {
       if (
@@ -90,7 +90,7 @@ class SimilarSnippetsProcess
       functionPrefix + functionSuffix,
     );
     this.proxyFn.log(
-      `PromptExtractor.getSimilarSnippets: ${referenceSnippetLines}`,
+      `PromptExtractor.getSimilarSnippets.referenceSnippetLines: ${referenceSnippetLines.join('========================')}`,
     );
 
     tabContentsWithoutComments.forEach(({ path, lines }) => {
