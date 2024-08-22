@@ -69,7 +69,7 @@ class MessageToMasterProxy {
 exports.MessageToMasterProxy = MessageToMasterProxy;
 // 在主进程实例化，用于接受子进程消息
 class MessageToChildProxy {
-    constructor(scriptPath, arg) {
+    constructor(scriptPath, arg, inspectNumber) {
         this.scriptPath = scriptPath;
         this.promiseMap = new Map();
         this.proxyFn = new Proxy({}, {
@@ -79,7 +79,7 @@ class MessageToChildProxy {
             }),
         });
         this.childProcess = (0, child_process_1.fork)(this.scriptPath, arg, {
-            execArgv: ['--inspect']
+            execArgv: [`--inspect=${inspectNumber}`]
         });
         console.log(`[${this.childProcess.pid}]  ${scriptPath}`);
         this.childProcess.on('close', (code) => {

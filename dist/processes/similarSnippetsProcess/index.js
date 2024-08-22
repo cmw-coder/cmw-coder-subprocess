@@ -4,6 +4,10 @@ const constants_1 = require("../../common/constants");
 const MessageProxy_1 = require("../../common/MessageProxy");
 const utils_1 = require("../../common/utils");
 class SimilarSnippetsProcess extends MessageProxy_1.MessageToMasterProxy {
+    constructor() {
+        super();
+        this.proxyFn.log(`similarSnippets process started ${process.pid}`);
+    }
     enableSimilarSnippet() {
         this._slowRecentFiles = undefined;
         this.proxyFn.log('PromptExtractor.getSimilarSnippets.enable');

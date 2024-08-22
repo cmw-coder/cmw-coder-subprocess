@@ -76,7 +76,7 @@ class MessageToMasterProxy {
 exports.MessageToMasterProxy = MessageToMasterProxy;
 // 在主进程实例化，用于接受子进程消息
 class MessageToChildProxy {
-    constructor(scriptPath, arg) {
+    constructor(scriptPath, arg, inspectNumber) {
         this.scriptPath = scriptPath;
         this.promiseMap = new Map();
         this.proxyFn = new Proxy({}, {
@@ -86,7 +86,7 @@ class MessageToChildProxy {
             }),
         });
         this.childProcess = (0, child_process_1.fork)(this.scriptPath, arg, {
-            execArgv: ['--inspect']
+            execArgv: [`--inspect=${inspectNumber}`]
         });
         console.log(`[${this.childProcess.pid}]  ${scriptPath}`);
         this.childProcess.on('close', (code) => {
@@ -4479,6 +4479,10 @@ const constants_1 = __webpack_require__(84);
 const MessageProxy_1 = __webpack_require__(1);
 const utils_1 = __webpack_require__(83);
 class SimilarSnippetsProcess extends MessageProxy_1.MessageToMasterProxy {
+    constructor() {
+        super();
+        this.proxyFn.log(`similarSnippets process started ${process.pid}`);
+    }
     enableSimilarSnippet() {
         this._slowRecentFiles = undefined;
         this.proxyFn.log('PromptExtractor.getSimilarSnippets.enable');

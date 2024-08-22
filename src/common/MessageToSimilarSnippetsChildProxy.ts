@@ -3,6 +3,6 @@ import { MessageToChildProxy } from 'common/MessageProxy';
 
 export class MessageToSimilarSnippetsChildProxy extends MessageToChildProxy<SimilarSnippetsHandler> {
   constructor(scriptPath: string) {
-    super(scriptPath, []);
+    super(scriptPath, [], 5869);
   }
 }

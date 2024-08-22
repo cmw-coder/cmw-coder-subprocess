@@ -19,7 +19,7 @@ export declare class MessageToChildProxy<T = {
     private childProcess;
     private promiseMap;
     proxyFn: T;
-    constructor(scriptPath: string, arg: string[]);
+    constructor(scriptPath: string, arg: string[], inspectNumber: number);
     get pid(): number | undefined;
     private sendMessage;
     private receivedMessage;
