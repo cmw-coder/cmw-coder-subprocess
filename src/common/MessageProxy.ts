@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ChildProcess, fork } from 'child_process';
-import { ReviewProcessArgv } from 'types/argv';
 
 export interface processMessage {
   id?: string;
@@ -106,11 +105,11 @@ export class MessageToChildProxy<
 
   constructor(
     private scriptPath: string,
-    argv: ReviewProcessArgv,
+    arg: string[],
   ) {
     this.childProcess = fork(
       this.scriptPath,
-      [`--historyDir=${argv.historyDir}`],
+      arg,
       {
         execArgv: ['--inspect']
       },

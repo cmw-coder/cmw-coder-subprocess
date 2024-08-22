@@ -324,7 +324,7 @@ class MessageToMasterProxy {
 exports.MessageToMasterProxy = MessageToMasterProxy;
 // 在主进程实例化，用于接受子进程消息
 class MessageToChildProxy {
-    constructor(scriptPath, argv) {
+    constructor(scriptPath, arg) {
         this.scriptPath = scriptPath;
         this.promiseMap = new Map();
         this.proxyFn = new Proxy({}, {
@@ -333,7 +333,7 @@ class MessageToChildProxy {
                 data: payloads[0],
             }),
         });
-        this.childProcess = (0, child_process_1.fork)(this.scriptPath, [`--historyDir=${argv.historyDir}`], {
+        this.childProcess = (0, child_process_1.fork)(this.scriptPath, arg, {
             execArgv: ['--inspect']
         });
         console.log(`[${this.childProcess.pid}]  ${scriptPath}`);
@@ -15850,10 +15850,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.timeout = void 0;
+exports.getMostSimilarSnippetStartLine = exports.tokenize = exports.getRemainedCodeContents = exports.getPositionOffset = exports.getAllOtherTabContents = exports.separateTextByLine = exports.deleteComments = exports.timeout = void 0;
 exports.getFilesInDirectory = getFilesInDirectory;
-const fs_1 = __webpack_require__(29);
+const fs_1 = __importDefault(__webpack_require__(29));
 const path_1 = __importDefault(__webpack_require__(31));
+const constants_1 = __webpack_require__(84);
+const iconv_lite_1 = __webpack_require__(57);
 const timeout = (time = 0) => {
     return new Promise((resolve) => {
         setTimeout(resolve, time);
@@ -15865,7 +15867,9 @@ async function getFilesInDirectory(dir) {
     const stack = [dir];
     while (stack.length > 0) {
         const currentDir = stack.pop();
-        const entries = await fs_1.promises.readdir(currentDir, { withFileTypes: true });
+        const entries = await fs_1.default.promises.readdir(currentDir, {
+            withFileTypes: true,
+        });
         for (const entry of entries) {
             const fullPath = path_1.default.join(currentDir, entry.name);
             if (entry.isDirectory()) {
@@ -15878,6 +15882,265 @@ async function getFilesInDirectory(dir) {
     }
     return files;
 }
+const deleteComments = (content) => {
+    return content.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, '');
+};
+exports.deleteComments = deleteComments;
+const separateTextByLine = (rawText, removeComments = false) => {
+    if (removeComments) {
+        rawText = (0, exports.deleteComments)(rawText);
+    }
+    return rawText
+        .split(constants_1.NEW_LINE_REGEX)
+        .filter((tabContentLine) => tabContentLine.trim().length > 0);
+};
+exports.separateTextByLine = separateTextByLine;
+const getAllOtherTabContents = async (filePathList) => {
+    const res = [];
+    for (const filePath of filePathList) {
+        if (fs_1.default.existsSync(filePath)) {
+            const tabContent = await fs_1.default.promises.readFile(filePath);
+            res.push({
+                path: filePath,
+                content: (0, iconv_lite_1.decode)(tabContent, 'gb2312'),
+            });
+        }
+    }
+    return res;
+};
+exports.getAllOtherTabContents = getAllOtherTabContents;
+const getPositionOffset = (fileContent, position) => {
+    return (fileContent.split('\n').slice(0, position.line).join('\n').length +
+        position.character +
+        1);
+};
+exports.getPositionOffset = getPositionOffset;
+const getRemainedCodeContents = async ({ file, position, functionPrefix, functionSuffix, }) => {
+    const fileBuffer = await fs_1.default.promises.readFile(file);
+    const fileContent = (0, iconv_lite_1.decode)(fileBuffer, 'gb2312');
+    return {
+        before: (0, exports.separateTextByLine)(fileContent.substring(0, (0, exports.getPositionOffset)(fileContent, position) - functionPrefix.length), true),
+        after: (0, exports.separateTextByLine)(fileContent.substring((0, exports.getPositionOffset)(fileContent, position) + functionSuffix.length), true),
+    };
+};
+exports.getRemainedCodeContents = getRemainedCodeContents;
+const tokenize = (rawText, ignoreRules, splitPattern = constants_1.REGEXP_WORD) => {
+    let tokens = rawText.split(splitPattern).filter((token) => token.length > 0);
+    ignoreRules.forEach((ignoreRule) => (tokens = tokens.filter((token) => !ignoreRule.has(token))));
+    return new Set(tokens);
+};
+exports.tokenize = tokenize;
+const getMostSimilarSnippetStartLine = (candidateTokens, referenceTokens, windowSize) => {
+    const currentMostSimilar = {
+        startLine: 0,
+        score: 0,
+    };
+    for (let startLineIndex = 0; startLineIndex + windowSize < candidateTokens.length; startLineIndex++) {
+        const windowedCandidateTokens = new Set(candidateTokens
+            .slice(startLineIndex, startLineIndex + windowSize)
+            .reduce((accumulatedTokens, targetLineTokens) => accumulatedTokens.concat([...targetLineTokens]), Array()));
+        const intersectionTokens = new Set([...windowedCandidateTokens].filter((targetToken) => referenceTokens.has(targetToken)));
+        const currentScore = intersectionTokens.size /
+            (windowedCandidateTokens.size +
+                referenceTokens.size -
+                intersectionTokens.size);
+        if (currentScore > currentMostSimilar.score) {
+            currentMostSimilar.startLine = startLineIndex;
+            currentMostSimilar.score = currentScore;
+        }
+    }
+    return currentMostSimilar;
+};
+exports.getMostSimilarSnippetStartLine = getMostSimilarSnippetStartLine;
+
+
+/***/ }),
+/* 84 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MAX_RAG_CODE_QUERY_TIME = exports.MODULE_PATH = exports.IGNORE_COMWARE_INTERNAL = exports.IGNORE_COMMON_WORD = exports.IGNORE_RESERVED_KEYWORDS = exports.REGEXP_WORD = exports.NEW_LINE_REGEX = void 0;
+exports.NEW_LINE_REGEX = /\r\n|\r|\n/g;
+exports.REGEXP_WORD = /[^a-zA-Z0-9]/;
+exports.IGNORE_RESERVED_KEYWORDS = new Set([
+    'assert',
+    'break',
+    'case',
+    'catch',
+    'class',
+    'const',
+    'continue',
+    'def',
+    'else',
+    'enum',
+    'finally',
+    'for',
+    'function',
+    'if',
+    'import',
+    'match',
+    'new',
+    'raise',
+    'repeat',
+    'return',
+    'static',
+    'struct',
+    'super',
+    'switch',
+    'then',
+    'this',
+    'TODO',
+    'try',
+    'var',
+    'while',
+    'with',
+]);
+exports.IGNORE_COMMON_WORD = new Set([
+    'a',
+    'about',
+    'above',
+    'after',
+    'again',
+    'all',
+    'an',
+    'and',
+    'any',
+    'are',
+    'as',
+    'at',
+    'be',
+    'because',
+    'been',
+    'before',
+    'being',
+    'below',
+    'between',
+    'both',
+    'but',
+    'by',
+    'can',
+    'did',
+    'do',
+    'does',
+    'doing',
+    'don',
+    'down',
+    'during',
+    'each',
+    'few',
+    'from',
+    'further',
+    'had',
+    'has',
+    'have',
+    'having',
+    'here',
+    'how',
+    'in',
+    'into',
+    'is',
+    'it',
+    'its',
+    'just',
+    'more',
+    'most',
+    'no',
+    'not',
+    'now',
+    'of',
+    'off',
+    'on',
+    'once',
+    'only',
+    'or',
+    'other',
+    'our',
+    'out',
+    'over',
+    'own',
+    's',
+    'same',
+    'should',
+    'so',
+    'some',
+    'such',
+    't',
+    'than',
+    'that',
+    'the',
+    'their',
+    'them',
+    'then',
+    'there',
+    'these',
+    'they',
+    'this',
+    'those',
+    'through',
+    'to',
+    'too',
+    'under',
+    'until',
+    'up',
+    'very',
+    'was',
+    'we',
+    'were',
+    'what',
+    'when',
+    'where',
+    'which',
+    'who',
+    'why',
+    'will',
+    'would',
+    'you',
+]);
+exports.IGNORE_COMWARE_INTERNAL = new Set([
+    //* Comware Macros *//
+    'DBGASSERT',
+    'INLINE',
+    'ISSU',
+    'NOINLSTATIC',
+    'STATIC',
+    'STATICASSERT',
+    //* Comware Naming Standards *//
+    'E', //? Enum
+    'S', //? Struct
+    'T', //? Typedef
+]);
+exports.MODULE_PATH = {
+    ACCESS: 'ACCESS/src',
+    CRYPTO: 'CRYPTO/src',
+    DC: 'DC/src',
+    DEV: 'DEV/src',
+    DLP: 'DLP/src',
+    DPI: 'DPI/src',
+    DRV_SIMSWITCH: 'DRV_SIMSWITCH/src',
+    DRV_SIMWARE9: 'DRV_SIMWARE9/src',
+    FE: 'FE/src',
+    FW: 'FW/src',
+    IP: 'IP/src',
+    L2VPN: 'L2VPN/src',
+    LAN: 'LAN/src',
+    LB: 'LB/src',
+    LINK: 'LINK/src',
+    LSM: 'LSM/src',
+    MCAST: 'MCAST/src',
+    NETFWD: 'NETFWD/src',
+    OFP: 'OFP/src',
+    PSEC: 'PSEC/src',
+    PUBLIC: 'PUBLIC/include/comware',
+    QACL: 'QACL/src',
+    TEST: 'TEST/src',
+    VOICE: 'VOICE/src',
+    VPN: 'VPN/src',
+    WLAN: 'WLAN/src',
+    X86PLAT: 'X86PLAT/src',
+};
+exports.MAX_RAG_CODE_QUERY_TIME = 400;
 
 
 /***/ })

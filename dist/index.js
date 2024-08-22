@@ -18,4 +18,5 @@ __exportStar(require("./types/review"), exports);
 __exportStar(require("./types/ReviewHandler"), exports);
 __exportStar(require("./types/argv"), exports);
 __exportStar(require("./types/master"), exports);
-__exportStar(require("./common/MessageProxy"), exports);
+__exportStar(require("./common/MessageToReviewChildProxy"), exports);
+__exportStar(require("./common/MessageToSimilarSnippetsChildProxy"), exports);

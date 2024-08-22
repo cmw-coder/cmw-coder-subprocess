@@ -37,6 +37,9 @@ const buildConfig = {
     reviewManagerProcess: path.resolve(
       'src/processes/reviewManagerProcess/index.ts',
     ),
+    similarSnippetsProcess: path.resolve(
+      'src/processes/similarSnippetsProcess/index.ts',
+    ),
     fileWatchProcess: path.resolve('src/processes/fileWatchProcess/index.ts'),
   },
   output: {
