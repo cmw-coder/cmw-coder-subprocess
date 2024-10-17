@@ -4541,6 +4541,7 @@ class SimilarSnippetsProcess extends MessageProxy_1.MessageToMasterProxy {
             this.proxyFn.log(`getSimilarSnippets.disable: ${endTime - startTime}`);
             this._slowRecentFiles = recentFiles;
         }
+        this.proxyFn.log(`getSimilarSnippets.end: ${endTime - startTime}`);
         return similarSnippets
             .filter((mostSimilarSnippet) => mostSimilarSnippet.score > 0)
             .sort((first, second) => first.score - second.score)

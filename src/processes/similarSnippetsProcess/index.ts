@@ -125,6 +125,7 @@ class SimilarSnippetsProcess
       this.proxyFn.log(`getSimilarSnippets.disable: ${endTime - startTime}`);
       this._slowRecentFiles = recentFiles;
     }
+    this.proxyFn.log(`getSimilarSnippets.end: ${endTime- startTime}`);
 
     return similarSnippets
       .filter((mostSimilarSnippet) => mostSimilarSnippet.score > 0)
