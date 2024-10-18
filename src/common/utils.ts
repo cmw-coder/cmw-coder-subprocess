@@ -109,7 +109,6 @@ export const getRemainedCodeContents = async ({
   };
 };
 
-
 export const tokenize = (
   rawText: string,
   ignoreRules: Array<Set<string>>,
@@ -168,3 +167,20 @@ export const getMostSimilarSnippetStartLine = (
   }
   return currentMostSimilar;
 };
+
+export function getTruncatedContents(
+  content: string,
+  indices: { begin: number; end: number }[],
+): string {
+  // Sort indices in descending order based on startIndex
+  indices.sort((a, b) => a.begin - b.begin);
+  let offset = 0;
+  // Remove substrings from the string
+  for (const { begin, end } of indices) {
+    content =
+      content.substring(0, begin - offset) + content.substring(end - offset);
+    offset += end - begin;
+  }
+
+  return content;
+}

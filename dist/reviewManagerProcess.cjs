@@ -15852,6 +15852,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getMostSimilarSnippetStartLine = exports.tokenize = exports.getRemainedCodeContents = exports.getPositionOffset = exports.getAllOtherTabContents = exports.separateTextByLine = exports.deleteComments = exports.timeout = void 0;
 exports.getFilesInDirectory = getFilesInDirectory;
+exports.getTruncatedContents = getTruncatedContents;
 const fs_1 = __importDefault(__webpack_require__(29));
 const path_1 = __importDefault(__webpack_require__(31));
 const constants_1 = __webpack_require__(84);
@@ -15952,6 +15953,18 @@ const getMostSimilarSnippetStartLine = (candidateTokens, referenceTokens, window
     return currentMostSimilar;
 };
 exports.getMostSimilarSnippetStartLine = getMostSimilarSnippetStartLine;
+function getTruncatedContents(content, indices) {
+    // Sort indices in descending order based on startIndex
+    indices.sort((a, b) => a.begin - b.begin);
+    let offset = 0;
+    // Remove substrings from the string
+    for (const { begin, end } of indices) {
+        content =
+            content.substring(0, begin - offset) + content.substring(end - offset);
+        offset += end - begin;
+    }
+    return content;
+}
 
 
 /***/ }),

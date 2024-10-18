@@ -41,6 +41,9 @@ const buildConfig = {
       'src/processes/similarSnippetsProcess/index.ts',
     ),
     fileWatchProcess: path.resolve('src/processes/fileWatchProcess/index.ts'),
+    fileStructureAnalysisProcess: path.resolve(
+      'src/processes/fileStructureAnalysisProcess/index.ts',
+    ),
   },
   output: {
     path: path.resolve('dist'),

@@ -22,3 +22,7 @@ export declare const getMostSimilarSnippetStartLine: (candidateTokens: Array<Set
     startLine: number;
     score: number;
 };
+export declare function getTruncatedContents(content: string, indices: {
+    begin: number;
+    end: number;
+}[]): string;
