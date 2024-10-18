@@ -8,7 +8,7 @@ import { decode } from 'iconv-lite';
 import { readFile } from 'fs/promises';
 import { deleteComments, getTruncatedContents } from 'common/utils';
 import { NEW_LINE_REGEX } from 'common/constants';
-import { SymbolInfo } from 'types/FileStructureAnalysisHandle';
+import { SymbolInfo } from 'types/FileStructureAnalysisHandler';
 
 class FileStructureAnalysisProcess
   extends MessageToMasterProxy<FileStructureAnalysisMasterHandler>

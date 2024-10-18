@@ -1,4 +1,4 @@
-import { SymbolInfo } from "./FileStructureAnalysisHandle";
+import { SymbolInfo } from "./FileStructureAnalysisHandler";
 export interface FileStructureAnalysisChildHandler {
     getGlobals(filePath: string): Promise<string>;
     getIncludes(filePath: string, maxLength: number): Promise<string>;
