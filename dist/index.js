@@ -17,6 +17,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./types/review"), exports);
 __exportStar(require("./types/ReviewHandler"), exports);
 __exportStar(require("./types/FileStructureAnalysisHandler"), exports);
+__exportStar(require("./types/fileStructureAnalysis"), exports);
 __exportStar(require("./types/argv"), exports);
 __exportStar(require("./types/master"), exports);
 __exportStar(require("./common/MessageToReviewChildProxy"), exports);
