@@ -1,12 +1,12 @@
 import { SymbolInfo } from './FileStructureAnalysisHandler';
 export interface FileStructureAnalysisChildHandler {
-    getGlobals(filePath: string): Promise<string>;
-    getIncludes(filePath: string, maxLength: number): Promise<string>;
-    getCalledFunctionIdentifiers(filePath: string): Promise<string[]>;
+    getGlobals(filePath: string): Promise<string | undefined>;
+    getIncludes(filePath: string, maxLength: number): Promise<string | undefined>;
+    getCalledFunctionIdentifiers(filePath: string): Promise<string[] | undefined>;
     getRelativeDefinitions(symbols: SymbolInfo[]): Promise<{
         path: string;
         content: string;
-    }[]>;
+    }[] | undefined>;
 }
 export interface FileStructureAnalysisMasterHandler {
     getScriptDir(): Promise<string>;
