@@ -17,6 +17,10 @@ class FileStructureAnalysisProcess
   private _parserInitialized = false;
   private cppParser: Parser | undefined = undefined;
   private cppParserLanguage: Parser.Language | undefined = undefined;
+  private isRunningGlobals = false;
+  private isRunningIncludes = false;
+  private isRunningRelativeDefinitions = false;
+  private isRunningCalledFunctionIdentifiers = false;
 
   constructor() {
     super();
@@ -45,8 +49,14 @@ class FileStructureAnalysisProcess
     };
   }
 
-  async getCalledFunctionIdentifiers(filePath: string): Promise<string[]> {
+  async getCalledFunctionIdentifiers(
+    filePath: string,
+  ): Promise<string[] | undefined> {
+    if (this.isRunningCalledFunctionIdentifiers) {
+      return undefined;
+    }
     try {
+      this.isRunningCalledFunctionIdentifiers = true;
       this.proxyFn.log(`getCalledFunctionIdentifiers ${filePath}`).catch();
       const fileBuffer = await readFile(filePath);
       const fileContent = decode(fileBuffer, 'gb2312');
@@ -69,11 +79,17 @@ class FileStructureAnalysisProcess
     } catch (e) {
       this.proxyFn.log('getCalledFunctionIdentifiers error', e).catch();
       return [];
+    } finally {
+      this.isRunningCalledFunctionIdentifiers = false;
     }
   }
 
-  async getGlobals(filePath: string): Promise<string> {
+  async getGlobals(filePath: string): Promise<string | undefined> {
+    if (this.isRunningGlobals) {
+      return undefined;
+    }
     try {
+      this.isRunningGlobals = true;
       this.proxyFn.log(`getGlobals ${filePath}`).catch();
       const fileBuffer = await readFile(filePath);
       const fileContent = decode(fileBuffer, 'gb2312');
@@ -107,11 +123,20 @@ class FileStructureAnalysisProcess
     } catch (e) {
       this.proxyFn.log('getGlobals error', e).catch();
       return '';
+    } finally {
+      this.isRunningGlobals = false;
     }
   }
 
-  async getIncludes(filePath: string, maxLength: number): Promise<string> {
+  async getIncludes(
+    filePath: string,
+    maxLength: number,
+  ): Promise<string | undefined> {
+    if (this.isRunningIncludes) {
+      return undefined;
+    }
     try {
+      this.isRunningIncludes = true;
       this.proxyFn.log(`getIncludes ${filePath}`).catch();
       const fileBuffer = await readFile(filePath);
       const fileContent = decode(fileBuffer, 'gb2312');
@@ -137,13 +162,19 @@ class FileStructureAnalysisProcess
     } catch (e) {
       this.proxyFn.log('getIncludes error', e).catch();
       return '';
+    } finally {
+      this.isRunningIncludes = false;
     }
   }
 
   async getRelativeDefinitions(
     symbols: SymbolInfo[],
-  ): Promise<{ path: string; content: string }[]> {
+  ): Promise<{ path: string; content: string }[] | undefined> {
+    if (this.isRunningRelativeDefinitions) {
+      return undefined;
+    }
     try {
+      this.isRunningRelativeDefinitions = true;
       this.proxyFn.log(`getRelativeDefinitions ${symbols.length}`).catch();
       const preResult = await Promise.all(
         symbols.map(async ({ path, startLine, endLine }) => {
@@ -179,6 +210,8 @@ class FileStructureAnalysisProcess
     } catch (e) {
       this.proxyFn.log('getRelativeDefinitions error', e).catch();
       return [];
+    } finally {
+      this.isRunningRelativeDefinitions = false;
     }
   }
 }
