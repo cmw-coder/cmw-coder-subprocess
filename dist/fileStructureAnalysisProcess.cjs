@@ -86,7 +86,7 @@ class MessageToChildProxy {
             }),
         });
         this.childProcess = (0, child_process_1.fork)(this.scriptPath, arg, {
-            execArgv: [`--inspect=${inspectNumber}`]
+            execArgv: [`--inspect=${inspectNumber}`],
         });
         console.log(`[${this.childProcess.pid}]  ${scriptPath}`);
         this.childProcess.on('close', (code) => {
@@ -4495,8 +4495,8 @@ class FileStructureAnalysisProcess extends MessageProxy_1.MessageToMasterProxy {
         this._parserInitialized = false;
         this.cppParser = undefined;
         this.cppParserLanguage = undefined;
-        this.initParser();
-        this.proxyFn.log(`fileStructureAnalysis process started ${process.pid}`);
+        this.initParser().catch();
+        this.proxyFn.log(`fileStructureAnalysis process started ${process.pid}`).catch();
     }
     async initParser() {
         if (!this._parserInitialized) {
@@ -4516,7 +4516,7 @@ class FileStructureAnalysisProcess extends MessageProxy_1.MessageToMasterProxy {
     }
     async getCalledFunctionIdentifiers(filePath) {
         try {
-            this.proxyFn.log(`getCalledFunctionIdentifiers ${filePath}`);
+            this.proxyFn.log(`getCalledFunctionIdentifiers ${filePath}`).catch();
             const fileBuffer = await (0, promises_1.readFile)(filePath);
             const fileContent = (0, iconv_lite_1.decode)(fileBuffer, 'gb2312');
             const { cppParser, cppParserLanguage } = await this.initParser();
@@ -4525,17 +4525,17 @@ class FileStructureAnalysisProcess extends MessageProxy_1.MessageToMasterProxy {
             const result = query
                 .matches(parserTree.rootNode)
                 .map(({ captures }) => fileContent.substring(captures[0].node.startIndex, captures[0].node.endIndex));
-            this.proxyFn.log('getCalledFunctionIdentifiers result', result);
+            this.proxyFn.log('getCalledFunctionIdentifiers result', result).catch();
             return result;
         }
         catch (e) {
-            this.proxyFn.log('getCalledFunctionIdentifiers error', e);
+            this.proxyFn.log('getCalledFunctionIdentifiers error', e).catch();
             return [];
         }
     }
     async getGlobals(filePath) {
         try {
-            this.proxyFn.log(`getGlobals ${filePath}`);
+            this.proxyFn.log(`getGlobals ${filePath}`).catch();
             const fileBuffer = await (0, promises_1.readFile)(filePath);
             const fileContent = (0, iconv_lite_1.decode)(fileBuffer, 'gb2312');
             const { cppParser, cppParserLanguage } = await this.initParser();
@@ -4561,17 +4561,17 @@ class FileStructureAnalysisProcess extends MessageProxy_1.MessageToMasterProxy {
                 .split(constants_1.NEW_LINE_REGEX)
                 .filter((line) => line.trim().length > 0)
                 .join('\n');
-            this.proxyFn.log('getGlobals result', [result]);
+            this.proxyFn.log('getGlobals result', [result]).catch();
             return result;
         }
         catch (e) {
-            this.proxyFn.log('getGlobals error', e);
+            this.proxyFn.log('getGlobals error', e).catch();
             return '';
         }
     }
     async getIncludes(filePath, maxLength) {
         try {
-            this.proxyFn.log(`getIncludes ${filePath}`);
+            this.proxyFn.log(`getIncludes ${filePath}`).catch();
             const fileBuffer = await (0, promises_1.readFile)(filePath);
             const fileContent = (0, iconv_lite_1.decode)(fileBuffer, 'gb2312');
             const { cppParser, cppParserLanguage } = await this.initParser();
@@ -4582,21 +4582,22 @@ class FileStructureAnalysisProcess extends MessageProxy_1.MessageToMasterProxy {
                 .map(({ captures }) => fileContent
                 .substring(captures[0].node.startIndex, captures[0].node.endIndex)
                 .replaceAll('\n', ''));
+            const sliceIndex = includes.findIndex((_, i) => includes.slice(0, i).join('\n').trim().length >= maxLength);
             const result = includes
-                .slice(0, includes.findIndex((_, i) => includes.slice(0, i).join('\n').trim().length >= maxLength))
+                .slice(0, sliceIndex === -1 ? includes.length : sliceIndex)
                 .join('\n')
                 .trim();
-            this.proxyFn.log('getIncludes result', [result]);
+            this.proxyFn.log('getIncludes result', [result]).catch();
             return result;
         }
         catch (e) {
-            this.proxyFn.log('getIncludes error', e);
+            this.proxyFn.log('getIncludes error', e).catch();
             return '';
         }
     }
     async getRelativeDefinitions(symbols) {
         try {
-            this.proxyFn.log(`getRelativeDefinitions ${symbols.length}`);
+            this.proxyFn.log(`getRelativeDefinitions ${symbols.length}`).catch();
             const preResult = await Promise.all(symbols.map(async ({ path, startLine, endLine }) => {
                 try {
                     return {
@@ -4610,7 +4611,7 @@ class FileStructureAnalysisProcess extends MessageProxy_1.MessageToMasterProxy {
                     };
                 }
                 catch (e) {
-                    this.proxyFn.log('getRelativeDefinitions', e);
+                    this.proxyFn.log('getRelativeDefinitions', e).catch();
                     return {
                         path,
                         content: '',
@@ -4618,11 +4619,11 @@ class FileStructureAnalysisProcess extends MessageProxy_1.MessageToMasterProxy {
                 }
             }));
             const result = preResult.filter(({ content }) => content.split('\n').length <= 100 && content.length <= 1024);
-            this.proxyFn.log('getRelativeDefinitions result', result);
+            this.proxyFn.log('getRelativeDefinitions result', result).catch();
             return result;
         }
         catch (e) {
-            this.proxyFn.log('getRelativeDefinitions error', e);
+            this.proxyFn.log('getRelativeDefinitions error', e).catch();
             return [];
         }
     }

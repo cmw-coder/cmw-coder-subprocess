@@ -9,7 +9,6 @@ export enum NetworkZone {
   Unknown = 'Unknown',
 }
 
-
 export interface AppConfig {
   networkZone: NetworkZone;
   baseServerUrl: string;
@@ -26,7 +25,7 @@ export interface AppConfig {
   darkMode: boolean;
   developerMode: boolean;
   showSelectedTipsWindow: boolean;
-  completionConfigs: any
+  completionConfigs: any;
 }
 
 export class Position {
@@ -86,4 +85,3 @@ export class Range {
     }
   }
 }
-

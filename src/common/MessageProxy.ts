@@ -108,13 +108,9 @@ export class MessageToChildProxy<
     arg: string[],
     inspectNumber: number,
   ) {
-    this.childProcess = fork(
-      this.scriptPath,
-      arg,
-      {
-        execArgv: [`--inspect=${inspectNumber}`]
-      },
-    );
+    this.childProcess = fork(this.scriptPath, arg, {
+      execArgv: [`--inspect=${inspectNumber}`],
+    });
     console.log(`[${this.childProcess.pid}]  ${scriptPath}`);
     this.childProcess.on('close', (code) => {
       console.log(`[${this.childProcess.pid}]  exit with code ${code}`);

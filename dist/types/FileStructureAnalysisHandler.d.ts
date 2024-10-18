@@ -1,4 +1,4 @@
-import { SymbolType } from "./review";
+import { SymbolType } from './review';
 export interface SymbolInfo {
     endLine: number;
     name: string;

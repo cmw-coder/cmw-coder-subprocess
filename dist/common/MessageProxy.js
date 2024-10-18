@@ -79,7 +79,7 @@ class MessageToChildProxy {
             }),
         });
         this.childProcess = (0, child_process_1.fork)(this.scriptPath, arg, {
-            execArgv: [`--inspect=${inspectNumber}`]
+            execArgv: [`--inspect=${inspectNumber}`],
         });
         console.log(`[${this.childProcess.pid}]  ${scriptPath}`);
         this.childProcess.on('close', (code) => {

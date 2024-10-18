@@ -20,8 +20,10 @@ class FileStructureAnalysisProcess
 
   constructor() {
     super();
-    this.initParser();
-    this.proxyFn.log(`fileStructureAnalysis process started ${process.pid}`);
+    this.initParser().catch();
+    this.proxyFn
+      .log(`fileStructureAnalysis process started ${process.pid}`)
+      .catch();
   }
 
   async initParser() {
@@ -45,7 +47,7 @@ class FileStructureAnalysisProcess
 
   async getCalledFunctionIdentifiers(filePath: string): Promise<string[]> {
     try {
-      this.proxyFn.log(`getCalledFunctionIdentifiers ${filePath}`);
+      this.proxyFn.log(`getCalledFunctionIdentifiers ${filePath}`).catch();
       const fileBuffer = await readFile(filePath);
       const fileContent = decode(fileBuffer, 'gb2312');
       const { cppParser, cppParserLanguage } = await this.initParser();
@@ -62,17 +64,17 @@ class FileStructureAnalysisProcess
           ),
         );
 
-      this.proxyFn.log('getCalledFunctionIdentifiers result', result);
+      this.proxyFn.log('getCalledFunctionIdentifiers result', result).catch();
       return result;
     } catch (e) {
-      this.proxyFn.log('getCalledFunctionIdentifiers error', e);
+      this.proxyFn.log('getCalledFunctionIdentifiers error', e).catch();
       return [];
     }
   }
 
   async getGlobals(filePath: string): Promise<string> {
     try {
-      this.proxyFn.log(`getGlobals ${filePath}`);
+      this.proxyFn.log(`getGlobals ${filePath}`).catch();
       const fileBuffer = await readFile(filePath);
       const fileContent = decode(fileBuffer, 'gb2312');
       const { cppParser, cppParserLanguage } = await this.initParser();
@@ -100,17 +102,17 @@ class FileStructureAnalysisProcess
         .split(NEW_LINE_REGEX)
         .filter((line) => line.trim().length > 0)
         .join('\n');
-      this.proxyFn.log('getGlobals result', [result]);
+      this.proxyFn.log('getGlobals result', [result]).catch();
       return result;
     } catch (e) {
-      this.proxyFn.log('getGlobals error', e);
+      this.proxyFn.log('getGlobals error', e).catch();
       return '';
     }
   }
 
   async getIncludes(filePath: string, maxLength: number): Promise<string> {
     try {
-      this.proxyFn.log(`getIncludes ${filePath}`);
+      this.proxyFn.log(`getIncludes ${filePath}`).catch();
       const fileBuffer = await readFile(filePath);
       const fileContent = decode(fileBuffer, 'gb2312');
       const { cppParser, cppParserLanguage } = await this.initParser();
@@ -123,20 +125,17 @@ class FileStructureAnalysisProcess
             .substring(captures[0].node.startIndex, captures[0].node.endIndex)
             .replaceAll('\n', ''),
         );
+      const sliceIndex = includes.findIndex(
+        (_, i) => includes.slice(0, i).join('\n').trim().length >= maxLength,
+      );
       const result = includes
-        .slice(
-          0,
-          includes.findIndex(
-            (_, i) =>
-              includes.slice(0, i).join('\n').trim().length >= maxLength,
-          ),
-        )
+        .slice(0, sliceIndex === -1 ? includes.length : sliceIndex)
         .join('\n')
         .trim();
-      this.proxyFn.log('getIncludes result', [result]);
+      this.proxyFn.log('getIncludes result', [result]).catch();
       return result;
     } catch (e) {
-      this.proxyFn.log('getIncludes error', e);
+      this.proxyFn.log('getIncludes error', e).catch();
       return '';
     }
   }
@@ -145,7 +144,7 @@ class FileStructureAnalysisProcess
     symbols: SymbolInfo[],
   ): Promise<{ path: string; content: string }[]> {
     try {
-      this.proxyFn.log(`getRelativeDefinitions ${symbols.length}`);
+      this.proxyFn.log(`getRelativeDefinitions ${symbols.length}`).catch();
       const preResult = await Promise.all(
         symbols.map(async ({ path, startLine, endLine }) => {
           try {
@@ -162,7 +161,7 @@ class FileStructureAnalysisProcess
                 .join('\n'),
             };
           } catch (e) {
-            this.proxyFn.log('getRelativeDefinitions', e);
+            this.proxyFn.log('getRelativeDefinitions', e).catch();
             return {
               path,
               content: '',
@@ -175,10 +174,10 @@ class FileStructureAnalysisProcess
         ({ content }) =>
           content.split('\n').length <= 100 && content.length <= 1024,
       );
-      this.proxyFn.log('getRelativeDefinitions result', result);
+      this.proxyFn.log('getRelativeDefinitions result', result).catch();
       return result;
     } catch (e) {
-      this.proxyFn.log('getRelativeDefinitions error', e);
+      this.proxyFn.log('getRelativeDefinitions error', e).catch();
       return [];
     }
   }

@@ -1,4 +1,4 @@
-import { Range } from "types/master";
+import { Range } from 'types/master';
 
 export enum SymbolType {
   Enum = 'Enum',
@@ -16,7 +16,6 @@ export interface ExtraData {
   projectId: string;
   version: string;
 }
-
 
 export interface Selection {
   block: string;
