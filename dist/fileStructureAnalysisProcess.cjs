@@ -4561,7 +4561,7 @@ class FileStructureAnalysisProcess extends MessageProxy_1.MessageToMasterProxy {
                 .split(constants_1.NEW_LINE_REGEX)
                 .filter((line) => line.trim().length > 0)
                 .join('\n');
-            this.proxyFn.log('getGlobals result', result);
+            this.proxyFn.log('getGlobals result', [result]);
             return result;
         }
         catch (e) {
@@ -4586,7 +4586,7 @@ class FileStructureAnalysisProcess extends MessageProxy_1.MessageToMasterProxy {
                 .slice(0, includes.findIndex((_, i) => includes.slice(0, i).join('\n').trim().length >= maxLength))
                 .join('\n')
                 .trim();
-            this.proxyFn.log('getIncludes result', result);
+            this.proxyFn.log('getIncludes result', [result]);
             return result;
         }
         catch (e) {

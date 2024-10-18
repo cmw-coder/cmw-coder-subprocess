@@ -100,7 +100,7 @@ class FileStructureAnalysisProcess
         .split(NEW_LINE_REGEX)
         .filter((line) => line.trim().length > 0)
         .join('\n');
-      this.proxyFn.log('getGlobals result', result);
+      this.proxyFn.log('getGlobals result', [result]);
       return result;
     } catch (e) {
       this.proxyFn.log('getGlobals error', e);
@@ -133,7 +133,7 @@ class FileStructureAnalysisProcess
         )
         .join('\n')
         .trim();
-      this.proxyFn.log('getIncludes result', result);
+      this.proxyFn.log('getIncludes result', [result]);
       return result;
     } catch (e) {
       this.proxyFn.log('getIncludes error', e);
