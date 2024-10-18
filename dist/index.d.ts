@@ -4,3 +4,4 @@ export * from './types/argv';
 export * from './types/master';
 export * from './common/MessageToReviewChildProxy';
 export * from './common/MessageToSimilarSnippetsChildProxy';
+export * from './common/MessageToFileStructureAnalysisChildProxy';

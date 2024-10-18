@@ -20,3 +20,4 @@ __exportStar(require("./types/argv"), exports);
 __exportStar(require("./types/master"), exports);
 __exportStar(require("./common/MessageToReviewChildProxy"), exports);
 __exportStar(require("./common/MessageToSimilarSnippetsChildProxy"), exports);
+__exportStar(require("./common/MessageToFileStructureAnalysisChildProxy"), exports);
