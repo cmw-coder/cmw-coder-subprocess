@@ -44,109 +44,143 @@ class FileStructureAnalysisProcess
   }
 
   async getCalledFunctionIdentifiers(filePath: string): Promise<string[]> {
-    const fileBuffer = await readFile(filePath);
-    const fileContent = decode(fileBuffer, 'gb2312');
-    const { cppParser, cppParserLanguage } = await this.initParser();
-    const parserTree = cppParser.parse(fileContent);
-    const query = cppParserLanguage.query(
-      '(call_expression (identifier) @function_identifier)',
-    );
-    return query
-      .matches(parserTree.rootNode)
-      .map(({ captures }) =>
-        fileContent.substring(
-          captures[0].node.startIndex,
-          captures[0].node.endIndex,
-        ),
+    try {
+      this.proxyFn.log(`getCalledFunctionIdentifiers ${filePath}`);
+      const fileBuffer = await readFile(filePath);
+      const fileContent = decode(fileBuffer, 'gb2312');
+      const { cppParser, cppParserLanguage } = await this.initParser();
+      const parserTree = cppParser.parse(fileContent);
+      const query = cppParserLanguage.query(
+        '(call_expression (identifier) @function_identifier)',
       );
+      const result = query
+        .matches(parserTree.rootNode)
+        .map(({ captures }) =>
+          fileContent.substring(
+            captures[0].node.startIndex,
+            captures[0].node.endIndex,
+          ),
+        );
+
+      this.proxyFn.log('getCalledFunctionIdentifiers result', result);
+      return result;
+    } catch (e) {
+      this.proxyFn.log('getCalledFunctionIdentifiers error', e);
+      return [];
+    }
   }
 
   async getGlobals(filePath: string): Promise<string> {
-    const fileBuffer = await readFile(filePath);
-    const fileContent = decode(fileBuffer, 'gb2312');
-    const { cppParser, cppParserLanguage } = await this.initParser();
-    const parserTree = cppParser.parse(fileContent);
-    const functionDefinitionIndices = cppParserLanguage
-      .query('(function_definition) @definition')
-      .matches(parserTree.rootNode)
-      .map(({ captures }) => ({
-        begin: captures[0].node.startIndex,
-        end: captures[0].node.endIndex,
-      }));
-    const includeIndices = cppParserLanguage
-      .query('(preproc_include) @include')
-      .matches(parserTree.rootNode)
-      .map(({ captures }) => ({
-        begin: captures[0].node.startIndex,
-        end: captures[0].node.endIndex,
-      }));
-    return deleteComments(
-      getTruncatedContents(fileContent, [
-        ...functionDefinitionIndices,
-        ...includeIndices,
-      ]),
-    )
-      .split(NEW_LINE_REGEX)
-      .filter((line) => line.trim().length > 0)
-      .join('\n');
+    try {
+      this.proxyFn.log(`getGlobals ${filePath}`);
+      const fileBuffer = await readFile(filePath);
+      const fileContent = decode(fileBuffer, 'gb2312');
+      const { cppParser, cppParserLanguage } = await this.initParser();
+      const parserTree = cppParser.parse(fileContent);
+      const functionDefinitionIndices = cppParserLanguage
+        .query('(function_definition) @definition')
+        .matches(parserTree.rootNode)
+        .map(({ captures }) => ({
+          begin: captures[0].node.startIndex,
+          end: captures[0].node.endIndex,
+        }));
+      const includeIndices = cppParserLanguage
+        .query('(preproc_include) @include')
+        .matches(parserTree.rootNode)
+        .map(({ captures }) => ({
+          begin: captures[0].node.startIndex,
+          end: captures[0].node.endIndex,
+        }));
+      const result = deleteComments(
+        getTruncatedContents(fileContent, [
+          ...functionDefinitionIndices,
+          ...includeIndices,
+        ]),
+      )
+        .split(NEW_LINE_REGEX)
+        .filter((line) => line.trim().length > 0)
+        .join('\n');
+      this.proxyFn.log('getGlobals result', result);
+      return result;
+    } catch (e) {
+      this.proxyFn.log('getGlobals error', e);
+      return '';
+    }
   }
 
   async getIncludes(filePath: string, maxLength: number): Promise<string> {
-    const fileBuffer = await readFile(filePath);
-    const fileContent = decode(fileBuffer, 'gb2312');
-    const { cppParser, cppParserLanguage } = await this.initParser();
-    const parserTree = cppParser.parse(fileContent);
-    const includes = cppParserLanguage
-      .query('(preproc_include) @include')
-      .matches(parserTree.rootNode)
-      .map(({ captures }) =>
-        fileContent
-          .substring(captures[0].node.startIndex, captures[0].node.endIndex)
-          .replaceAll('\n', ''),
-      );
-    return includes
-      .slice(
-        0,
-        includes.findIndex(
-          (_, i) => includes.slice(0, i).join('\n').trim().length >= maxLength,
-        ),
-      )
-      .join('\n')
-      .trim();
+    try {
+      this.proxyFn.log(`getIncludes ${filePath}`);
+      const fileBuffer = await readFile(filePath);
+      const fileContent = decode(fileBuffer, 'gb2312');
+      const { cppParser, cppParserLanguage } = await this.initParser();
+      const parserTree = cppParser.parse(fileContent);
+      const includes = cppParserLanguage
+        .query('(preproc_include) @include')
+        .matches(parserTree.rootNode)
+        .map(({ captures }) =>
+          fileContent
+            .substring(captures[0].node.startIndex, captures[0].node.endIndex)
+            .replaceAll('\n', ''),
+        );
+      const result = includes
+        .slice(
+          0,
+          includes.findIndex(
+            (_, i) =>
+              includes.slice(0, i).join('\n').trim().length >= maxLength,
+          ),
+        )
+        .join('\n')
+        .trim();
+      this.proxyFn.log('getIncludes result', result);
+      return result;
+    } catch (e) {
+      this.proxyFn.log('getIncludes error', e);
+      return '';
+    }
   }
 
   async getRelativeDefinitions(
     symbols: SymbolInfo[],
   ): Promise<{ path: string; content: string }[]> {
-    const result = await Promise.all(
-      symbols.map(async ({ path, startLine, endLine }) => {
-        try {
-          return {
-            path,
-            content: decode(
-              await readFile(path, {
-                flag: 'r',
-              }),
-              'gb2312',
-            )
-              .split(NEW_LINE_REGEX)
-              .slice(startLine, endLine + 1)
-              .join('\n'),
-          };
-        } catch (e) {
-          this.proxyFn.log('getRelativeDefinitions', e);
-          return {
-            path,
-            content: '',
-          };
-        }
-      }),
-    );
+    try {
+      this.proxyFn.log(`getRelativeDefinitions ${symbols.length}`);
+      const preResult = await Promise.all(
+        symbols.map(async ({ path, startLine, endLine }) => {
+          try {
+            return {
+              path,
+              content: decode(
+                await readFile(path, {
+                  flag: 'r',
+                }),
+                'gb2312',
+              )
+                .split(NEW_LINE_REGEX)
+                .slice(startLine, endLine + 1)
+                .join('\n'),
+            };
+          } catch (e) {
+            this.proxyFn.log('getRelativeDefinitions', e);
+            return {
+              path,
+              content: '',
+            };
+          }
+        }),
+      );
 
-    return result.filter(
-      ({ content }) =>
-        content.split('\n').length <= 100 && content.length <= 1024,
-    );
+      const result = preResult.filter(
+        ({ content }) =>
+          content.split('\n').length <= 100 && content.length <= 1024,
+      );
+      this.proxyFn.log('getRelativeDefinitions result', result);
+      return result;
+    } catch (e) {
+      this.proxyFn.log('getRelativeDefinitions error', e);
+      return [];
+    }
   }
 }
 
