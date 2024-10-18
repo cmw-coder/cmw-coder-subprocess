@@ -4496,7 +4496,9 @@ class FileStructureAnalysisProcess extends MessageProxy_1.MessageToMasterProxy {
         this.cppParser = undefined;
         this.cppParserLanguage = undefined;
         this.initParser().catch();
-        this.proxyFn.log(`fileStructureAnalysis process started ${process.pid}`).catch();
+        this.proxyFn
+            .log(`fileStructureAnalysis process started ${process.pid}`)
+            .catch();
     }
     async initParser() {
         if (!this._parserInitialized) {
