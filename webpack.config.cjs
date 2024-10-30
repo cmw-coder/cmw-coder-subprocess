@@ -44,6 +44,7 @@ const buildConfig = {
     fileStructureAnalysisProcess: path.resolve(
       'src/processes/fileStructureAnalysisProcess/index.ts',
     ),
+    diffProcess: path.resolve('src/processes/diffProcess/index.ts'),
   },
   output: {
     path: path.resolve('dist'),

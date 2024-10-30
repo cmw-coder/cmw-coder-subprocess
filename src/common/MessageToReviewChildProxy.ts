@@ -1,5 +1,5 @@
 import { ReviewChildHandler } from 'types/ReviewHandler';
-import { MessageToChildProxy } from './MessageProxy';
+import { MessageToChildProxy } from 'common/MessageProxy';
 import { ReviewProcessArgv } from 'types/argv';
 
 export class MessageToReviewChildProxy extends MessageToChildProxy<ReviewChildHandler> {
