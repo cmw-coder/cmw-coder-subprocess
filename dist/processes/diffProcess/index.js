@@ -31,17 +31,18 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
             for (let i = 0; i < lineDiffs.length; i++) {
                 const lineDiff = lineDiffs[i];
                 if (lineDiff[0] === 1) {
-                    const lines = lineDiff[1].split('\r\n|\n');
+                    const lines = lineDiff[1].split(/\n|\r\n/);
                     result.added += lines.length - 1;
                 }
                 if (lineDiff[0] === -1) {
-                    const lines = lineDiff[1].split('\r\n|\n');
+                    const lines = lineDiff[1].split(/\n|\r\n/);
                     result.deleted += lines.length - 1;
                 }
             }
             return result;
         }
-        catch {
+        catch (e) {
+            this.proxyFn.log('diffLine error', e);
             return result;
         }
         finally {
@@ -70,7 +71,8 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
             }
             return result;
         }
-        catch {
+        catch (e) {
+            this.proxyFn.log('diffChar error', e);
             return result;
         }
         finally {
