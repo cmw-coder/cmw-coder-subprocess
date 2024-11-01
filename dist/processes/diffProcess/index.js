@@ -28,6 +28,7 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
             const lineArray = a.lineArray;
             const lineDiffs = this.dmp.diff_main(lineText1, lineText2, false);
             this.dmp.diff_charsToLines_(lineDiffs, lineArray);
+            this.dmp.diff_cleanupSemantic(lineDiffs);
             for (let i = 0; i < lineDiffs.length; i++) {
                 const lineDiff = lineDiffs[i];
                 if (lineDiff[0] === 1) {
