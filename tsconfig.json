@@ -7,7 +7,8 @@
     "paths": {
       "types/*": ["src/types/*"],
       "common/*": ["src/common/*"],
-      "processes/*": ["src/processes/*"]
+      "processes/*": ["src/processes/*"],
+      "public/*": ["public/*"]
     },
     "outDir": "dist",
     "declaration": true,

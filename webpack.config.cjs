@@ -14,6 +14,7 @@ const buildConfig = {
       types: path.resolve('src/types'),
       common: path.resolve('src/common'),
       processes: path.resolve('src/processes'),
+      public: path.resolve('public'),
     },
   },
   devtool: 'nosources-source-map',
@@ -62,6 +63,10 @@ const buildConfig = {
         {
           from: path.resolve('public/tree-sitter/tree-sitter-c.wasm'),
           to: path.resolve('dist/public/tree-sitter/tree-sitter-c.wasm'),
+        },
+        {
+          from: path.resolve('public/wasm-diff-match-patch/wasm_diff_match_patch_bg.wasm'),
+          to: path.resolve('dist/wasm_diff_match_patch_bg.wasm'),
         },
       ],
     }),

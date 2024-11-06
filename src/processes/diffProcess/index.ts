@@ -2,12 +2,17 @@ import { MessageToMasterProxy } from 'common/MessageProxy';
 import { DiffChildHandler, DiffMasterHandler } from 'types/diffHandler';
 import DiffMatchPatch from 'diff-match-patch';
 import { DiffCharResult, DiffLineResult } from 'types/diff';
+import {
+  Differ,
+  greet,
+} from 'public/wasm-diff-match-patch/wasm_diff_match_patch';
 
 class DiffProcess
   extends MessageToMasterProxy<DiffMasterHandler>
   implements DiffChildHandler
 {
   private dmp = new DiffMatchPatch();
+  private wasmDmp = new Differ();
   private isRunning = false;
   constructor() {
     super();
@@ -83,6 +88,22 @@ class DiffProcess
       return result;
     } finally {
       this.isRunning = false;
+    }
+  }
+
+  async test(
+    name: string,
+    text1: string,
+    text2: string,
+  ): Promise<{
+    greet: string;
+    diffResult: string;
+  }> {
+    const greetResult = greet(name);
+    const diffResult = this.wasmDmp.diff_main(text1, text2);
+    return {
+      greet: greetResult,
+      diffResult,
     }
   }
 }

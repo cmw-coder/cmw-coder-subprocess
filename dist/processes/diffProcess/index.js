@@ -5,10 +5,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const MessageProxy_1 = require("../../common/MessageProxy");
 const diff_match_patch_1 = __importDefault(require("diff-match-patch"));
+const wasm_diff_match_patch_1 = require("public/wasm-diff-match-patch/wasm_diff_match_patch");
 class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
     constructor() {
         super();
         this.dmp = new diff_match_patch_1.default();
+        this.wasmDmp = new wasm_diff_match_patch_1.Differ();
         this.isRunning = false;
         this.dmp.Diff_Timeout = 0;
     }
@@ -79,6 +81,14 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
         finally {
             this.isRunning = false;
         }
+    }
+    async test(name, text1, text2) {
+        const greetResult = (0, wasm_diff_match_patch_1.greet)(name);
+        const diffResult = this.wasmDmp.diff_main(text1, text2);
+        return {
+            greet: greetResult,
+            diffResult,
+        };
     }
 }
 new DiffProcess();
