@@ -83,7 +83,7 @@ class ReviewInstance {
                 await this.getReviewResult();
                 this.state = review_1.ReviewState.Finished;
                 this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
-                this.saveReviewData();
+                this.saveReviewData().catch();
                 this.onUpdate();
                 this.onEnd();
             }
@@ -93,7 +93,7 @@ class ReviewInstance {
                 await this.getReviewResult();
                 this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
                 this.errorInfo = this.result ? this.result.originData : '';
-                this.saveReviewData();
+                this.saveReviewData().catch();
                 this.onUpdate();
                 this.onEnd();
             }
@@ -106,7 +106,7 @@ class ReviewInstance {
             this.state = review_1.ReviewState.Error;
             this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
             this.errorInfo = error.message;
-            this.saveReviewData();
+            this.saveReviewData().catch();
             this.onUpdate();
             this.onEnd();
         }
@@ -137,7 +137,7 @@ class ReviewInstance {
         };
     }
     async stop() {
-        this.proxyFn.log('ReviewInstance.stop');
+        this.proxyFn.log('ReviewInstance.stop').catch();
         this.isRunning = false;
         if (this.timer) {
             clearInterval(this.timer);
@@ -151,7 +151,7 @@ class ReviewInstance {
                 await this.proxyFn.api_stop_review(this.serverTaskId);
             }
             catch (e) {
-                this.proxyFn.log('stopReview.failed', e);
+                this.proxyFn.log('stopReview.failed', e).catch();
             }
         }
         this.state = review_1.ReviewState.Error;

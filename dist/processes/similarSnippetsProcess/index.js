@@ -6,15 +6,15 @@ const utils_1 = require("../../common/utils");
 class SimilarSnippetsProcess extends MessageProxy_1.MessageToMasterProxy {
     constructor() {
         super();
-        this.proxyFn.log(`similarSnippets process started ${process.pid}`);
+        this.proxyFn.log(`similarSnippets process started ${process.pid}`).catch();
     }
     enableSimilarSnippet() {
         this._slowRecentFiles = undefined;
-        this.proxyFn.log('getSimilarSnippets.enable');
+        this.proxyFn.log('getSimilarSnippets.enable').catch();
     }
     async getSimilarSnippets({ file, position, functionPrefix, functionSuffix, recentFiles, }) {
-        this.proxyFn.log('getSimilarSnippets: file', file);
-        this.proxyFn.log('getSimilarSnippets: recentFiles', recentFiles);
+        this.proxyFn.log('getSimilarSnippets: file', file).catch();
+        this.proxyFn.log('getSimilarSnippets: recentFiles', recentFiles).catch();
         if (this._slowRecentFiles) {
             if (!this._slowRecentFiles.some((slowFile) => !recentFiles.includes(slowFile))) {
                 return [];
@@ -41,9 +41,13 @@ class SimilarSnippetsProcess extends MessageProxy_1.MessageToMasterProxy {
         });
         const similarSnippets = Array();
         const referenceSnippetLines = (0, utils_1.separateTextByLine)(functionPrefix + functionSuffix);
-        this.proxyFn.log('getSimilarSnippets.referenceSnippetLines:', referenceSnippetLines);
+        this.proxyFn
+            .log('getSimilarSnippets.referenceSnippetLines:', referenceSnippetLines)
+            .catch();
         tabContentsWithoutComments.forEach(({ path, lines }) => {
-            const { score, startLine } = (0, utils_1.getMostSimilarSnippetStartLine)(lines.map((line) => (0, utils_1.tokenize)(line, [
+            const { score, startLine } = (0, utils_1.getMostSimilarSnippetStartLine)(lines
+                .slice(0, constants_1.SIMILAR_SNIPPETS_MAX_SEARCH_LINES)
+                .map((line) => (0, utils_1.tokenize)(line, [
                 constants_1.IGNORE_RESERVED_KEYWORDS,
                 constants_1.IGNORE_COMMON_WORD,
                 constants_1.IGNORE_COMWARE_INTERNAL,
@@ -63,10 +67,12 @@ class SimilarSnippetsProcess extends MessageProxy_1.MessageToMasterProxy {
         });
         const endTime = Date.now();
         if (endTime - startTime > 1000) {
-            this.proxyFn.log(`getSimilarSnippets.disable: ${endTime - startTime}`);
+            this.proxyFn
+                .log(`getSimilarSnippets.disable: ${endTime - startTime}`)
+                .catch();
             this._slowRecentFiles = recentFiles;
         }
-        this.proxyFn.log(`getSimilarSnippets.end: ${endTime - startTime}`);
+        this.proxyFn.log(`getSimilarSnippets.end: ${endTime - startTime}`).catch();
         return similarSnippets
             .filter((mostSimilarSnippet) => mostSimilarSnippet.score > 0)
             .sort((first, second) => first.score - second.score)

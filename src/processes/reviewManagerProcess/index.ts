@@ -40,7 +40,7 @@ class ReviewProcess
   constructor() {
     super();
     Parser.init().then(() => (this._parserInitialized = true));
-    this.proxyFn.log(`review process started ${process.pid}`);
+    this.proxyFn.log(`review process started ${process.pid}`).catch();
   }
 
   async getReviewData(): Promise<ReviewData[]> {
@@ -109,12 +109,12 @@ class ReviewProcess
     this.isClearAll = false;
     const isExist = await promises.stat(projectDirPath).catch(() => false);
     if (!isExist) {
-      this.proxyFn.log(`project not exist: ${projectDirPath}`);
+      this.proxyFn.log(`project not exist: ${projectDirPath}`).catch();
       return;
     }
     const fileList = await getFilesInDirectory(projectDirPath);
     const cppFileList = fileList.filter((file) => path.extname(file) === '.c');
-    this.proxyFn.log(`review project file num: ${cppFileList.length}`);
+    this.proxyFn.log(`review project file num: ${cppFileList.length}`).catch();
     for (let i = 0; i < cppFileList.length; i++) {
       if (this.isClearAll) {
         break;
@@ -138,11 +138,11 @@ class ReviewProcess
     this.isClearAll = false;
     const isExist = await promises.stat(filePath).catch(() => false);
     if (!isExist) {
-      this.proxyFn.log(`file not exist: ${filePath}`);
+      this.proxyFn.log(`file not exist: ${filePath}`).catch();
       return;
     }
     if (!this._parserInitialized) {
-      this.proxyFn.log('parser not initialized');
+      this.proxyFn.log('parser not initialized').catch();
       return;
     }
     const fileBuffer = await promises.readFile(filePath);
@@ -181,9 +181,11 @@ class ReviewProcess
           language: 'c',
         }),
       );
-      this.proxyFn.log(
-        `review file: ${filePath} [Function number]: ${functionDefinitions.length}`,
-      );
+      this.proxyFn
+        .log(
+          `review file: ${filePath} [Function number]: ${functionDefinitions.length}`,
+        )
+        .catch();
       for (let i = 0; i < functionDefinitions.length; i++) {
         const functionDefinition = functionDefinitions[i];
         try {
@@ -195,11 +197,11 @@ class ReviewProcess
             },
           });
         } catch (e) {
-          this.proxyFn.log(`review file error: ${e}`);
+          this.proxyFn.log(`review file error: ${e}`).catch();
         }
       }
     } catch (error) {
-      this.proxyFn.log(`review file error: ${error}`);
+      this.proxyFn.log(`review file error: ${error}`).catch();
       return;
     }
   }
@@ -239,23 +241,23 @@ class ReviewProcess
       (review) => review.isRunning,
     );
     if (runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
-      review.start();
+      review.start().catch();
     }
-    this.proxyFn.reviewFileListUpdated();
+    this.proxyFn.reviewFileListUpdated().catch();
   }
 
   async stopReview(reviewId: string) {
-    this.proxyFn.log(`stop review: ${reviewId}`);
+    this.proxyFn.log(`stop review: ${reviewId}`).catch();
     const review = this.activeReviewList.find(
       (review) => review.reviewId === reviewId,
     );
     if (review) {
-      review.stop();
+      review.stop().catch();
     }
   }
 
   async delReview(reviewId: string) {
-    this.proxyFn.log(`del review: ${reviewId}`);
+    this.proxyFn.log(`del review: ${reviewId}`).catch();
     const reviewIndex = this.activeReviewList.findIndex(
       (review) => review.reviewId === reviewId,
     );
@@ -266,7 +268,7 @@ class ReviewProcess
   }
 
   async delReviewByFile(filePath: string): Promise<any> {
-    this.proxyFn.log(`del review by file: ${filePath}`);
+    this.proxyFn.log(`del review by file: ${filePath}`).catch();
     const fileReviewList = this.activeReviewList.filter(
       (review) => review.selection.file === filePath,
     );
@@ -277,19 +279,19 @@ class ReviewProcess
     for (let i = 0; i < fileReviewList.length; i++) {
       const review = fileReviewList[i];
       if (review.isRunning) {
-        review.stop();
+        review.stop().catch();
       }
     }
   }
 
   async retryReview(reviewId: string): Promise<any> {
-    this.proxyFn.log(`retry review: ${reviewId}`);
+    this.proxyFn.log(`retry review: ${reviewId}`).catch();
     const review = this.activeReviewList.find(
       (review) => review.reviewId === reviewId,
     );
     if (review) {
       await review.stop();
-      review.start();
+      review.start().catch();
     }
   }
 
@@ -300,20 +302,20 @@ class ReviewProcess
     timestamp: number;
     comment: string;
   }): Promise<any> {
-    this.proxyFn.api_feedback_review(data);
+    this.proxyFn.api_feedback_review(data).catch();
     const review = this.activeReviewList.find(
       (review) => review.serverTaskId === data.serverTaskId,
     );
     if (review) {
       review.feedback = data.feedback;
       review.comment = data.comment;
-      review.saveReviewData();
+      review.saveReviewData().catch();
       review.onUpdate();
     }
   }
 
   async clearReview(): Promise<any> {
-    this.proxyFn.log(`clear review`);
+    this.proxyFn.log(`clear review`).catch();
     const runningReviewList = this.activeReviewList.filter(
       (review) => review.isRunning,
     );

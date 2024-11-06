@@ -27,7 +27,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this.localReviewHistoryManager = new LocalReviewHistoryManager_1.LocalReviewHistoryManager(argv.historyDir, this.proxyFn);
         this.isClearAll = false;
         web_tree_sitter_1.default.init().then(() => (this._parserInitialized = true));
-        this.proxyFn.log(`review process started ${process.pid}`);
+        this.proxyFn.log(`review process started ${process.pid}`).catch();
     }
     async getReviewData() {
         return this.activeReviewList.map((review) => review.getReviewData());
@@ -78,12 +78,12 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this.isClearAll = false;
         const isExist = await fs_1.promises.stat(projectDirPath).catch(() => false);
         if (!isExist) {
-            this.proxyFn.log(`project not exist: ${projectDirPath}`);
+            this.proxyFn.log(`project not exist: ${projectDirPath}`).catch();
             return;
         }
         const fileList = await (0, utils_1.getFilesInDirectory)(projectDirPath);
         const cppFileList = fileList.filter((file) => path_1.default.extname(file) === '.c');
-        this.proxyFn.log(`review project file num: ${cppFileList.length}`);
+        this.proxyFn.log(`review project file num: ${cppFileList.length}`).catch();
         for (let i = 0; i < cppFileList.length; i++) {
             if (this.isClearAll) {
                 break;
@@ -100,11 +100,11 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this.isClearAll = false;
         const isExist = await fs_1.promises.stat(filePath).catch(() => false);
         if (!isExist) {
-            this.proxyFn.log(`file not exist: ${filePath}`);
+            this.proxyFn.log(`file not exist: ${filePath}`).catch();
             return;
         }
         if (!this._parserInitialized) {
-            this.proxyFn.log('parser not initialized');
+            this.proxyFn.log('parser not initialized').catch();
             return;
         }
         const fileBuffer = await fs_1.promises.readFile(filePath);
@@ -126,7 +126,9 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
                 range: new master_1.Range(captures[0].node.startPosition.row, captures[0].node.startPosition.column, captures[0].node.endPosition.row, captures[0].node.endPosition.column),
                 language: 'c',
             }));
-            this.proxyFn.log(`review file: ${filePath} [Function number]: ${functionDefinitions.length}`);
+            this.proxyFn
+                .log(`review file: ${filePath} [Function number]: ${functionDefinitions.length}`)
+                .catch();
             for (let i = 0; i < functionDefinitions.length; i++) {
                 const functionDefinition = functionDefinitions[i];
                 try {
@@ -139,12 +141,12 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
                     });
                 }
                 catch (e) {
-                    this.proxyFn.log(`review file error: ${e}`);
+                    this.proxyFn.log(`review file error: ${e}`).catch();
                 }
             }
         }
         catch (error) {
-            this.proxyFn.log(`review file error: ${error}`);
+            this.proxyFn.log(`review file error: ${error}`).catch();
             return;
         }
     }
@@ -172,19 +174,19 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         };
         const runningReviewList = this.activeReviewList.filter((review) => review.isRunning);
         if (runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
-            review.start();
+            review.start().catch();
         }
-        this.proxyFn.reviewFileListUpdated();
+        this.proxyFn.reviewFileListUpdated().catch();
     }
     async stopReview(reviewId) {
-        this.proxyFn.log(`stop review: ${reviewId}`);
+        this.proxyFn.log(`stop review: ${reviewId}`).catch();
         const review = this.activeReviewList.find((review) => review.reviewId === reviewId);
         if (review) {
-            review.stop();
+            review.stop().catch();
         }
     }
     async delReview(reviewId) {
-        this.proxyFn.log(`del review: ${reviewId}`);
+        this.proxyFn.log(`del review: ${reviewId}`).catch();
         const reviewIndex = this.activeReviewList.findIndex((review) => review.reviewId === reviewId);
         if (reviewIndex !== -1) {
             await this.activeReviewList[reviewIndex].stop();
@@ -192,36 +194,36 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this.activeReviewList.splice(reviewIndex, 1);
     }
     async delReviewByFile(filePath) {
-        this.proxyFn.log(`del review by file: ${filePath}`);
+        this.proxyFn.log(`del review by file: ${filePath}`).catch();
         const fileReviewList = this.activeReviewList.filter((review) => review.selection.file === filePath);
         this.activeReviewList = this.activeReviewList.filter((review) => review.selection.file !== filePath);
         for (let i = 0; i < fileReviewList.length; i++) {
             const review = fileReviewList[i];
             if (review.isRunning) {
-                review.stop();
+                review.stop().catch();
             }
         }
     }
     async retryReview(reviewId) {
-        this.proxyFn.log(`retry review: ${reviewId}`);
+        this.proxyFn.log(`retry review: ${reviewId}`).catch();
         const review = this.activeReviewList.find((review) => review.reviewId === reviewId);
         if (review) {
             await review.stop();
-            review.start();
+            review.start().catch();
         }
     }
     async setReviewFeedback(data) {
-        this.proxyFn.api_feedback_review(data);
+        this.proxyFn.api_feedback_review(data).catch();
         const review = this.activeReviewList.find((review) => review.serverTaskId === data.serverTaskId);
         if (review) {
             review.feedback = data.feedback;
             review.comment = data.comment;
-            review.saveReviewData();
+            review.saveReviewData().catch();
             review.onUpdate();
         }
     }
     async clearReview() {
-        this.proxyFn.log(`clear review`);
+        this.proxyFn.log(`clear review`).catch();
         const runningReviewList = this.activeReviewList.filter((review) => review.isRunning);
         for (let i = 0; i < runningReviewList.length; i++) {
             const review = runningReviewList[i];

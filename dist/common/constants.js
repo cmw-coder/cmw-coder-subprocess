@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MAX_RAG_CODE_QUERY_TIME = exports.MODULE_PATH = exports.IGNORE_COMWARE_INTERNAL = exports.IGNORE_COMMON_WORD = exports.IGNORE_RESERVED_KEYWORDS = exports.REGEXP_WORD = exports.NEW_LINE_REGEX = void 0;
+exports.SIMILAR_SNIPPETS_MAX_SEARCH_LINES = exports.IGNORE_COMWARE_INTERNAL = exports.IGNORE_COMMON_WORD = exports.IGNORE_RESERVED_KEYWORDS = exports.REGEXP_WORD = exports.NEW_LINE_REGEX = void 0;
 exports.NEW_LINE_REGEX = /\r\n|\r|\n/g;
 exports.REGEXP_WORD = /[^a-zA-Z0-9]/;
 exports.IGNORE_RESERVED_KEYWORDS = new Set([
@@ -150,33 +150,4 @@ exports.IGNORE_COMWARE_INTERNAL = new Set([
     'S', //? Struct
     'T', //? Typedef
 ]);
-exports.MODULE_PATH = {
-    ACCESS: 'ACCESS/src',
-    CRYPTO: 'CRYPTO/src',
-    DC: 'DC/src',
-    DEV: 'DEV/src',
-    DLP: 'DLP/src',
-    DPI: 'DPI/src',
-    DRV_SIMSWITCH: 'DRV_SIMSWITCH/src',
-    DRV_SIMWARE9: 'DRV_SIMWARE9/src',
-    FE: 'FE/src',
-    FW: 'FW/src',
-    IP: 'IP/src',
-    L2VPN: 'L2VPN/src',
-    LAN: 'LAN/src',
-    LB: 'LB/src',
-    LINK: 'LINK/src',
-    LSM: 'LSM/src',
-    MCAST: 'MCAST/src',
-    NETFWD: 'NETFWD/src',
-    OFP: 'OFP/src',
-    PSEC: 'PSEC/src',
-    PUBLIC: 'PUBLIC/include/comware',
-    QACL: 'QACL/src',
-    TEST: 'TEST/src',
-    VOICE: 'VOICE/src',
-    VPN: 'VPN/src',
-    WLAN: 'WLAN/src',
-    X86PLAT: 'X86PLAT/src',
-};
-exports.MAX_RAG_CODE_QUERY_TIME = 400;
+exports.SIMILAR_SNIPPETS_MAX_SEARCH_LINES = 10000;

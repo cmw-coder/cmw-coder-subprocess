@@ -1,4 +1,4 @@
-import { DiffCharResult, DiffLineResult } from "./diff";
+import { DiffCharResult, DiffLineResult } from './diff';
 export interface DiffMasterHandler {
     log(...payloads: any[]): Promise<void>;
 }

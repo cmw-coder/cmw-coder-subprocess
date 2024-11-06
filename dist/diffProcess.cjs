@@ -1114,7 +1114,7 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
             return result;
         }
         catch (e) {
-            this.proxyFn.log('diffLine error', e);
+            this.proxyFn.log('diffLine error', e).catch();
             return result;
         }
         finally {
@@ -1144,7 +1144,7 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
             return result;
         }
         catch (e) {
-            this.proxyFn.log('diffChar error', e);
+            this.proxyFn.log('diffChar error', e).catch();
             return result;
         }
         finally {

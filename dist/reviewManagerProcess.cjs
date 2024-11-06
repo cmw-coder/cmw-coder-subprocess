@@ -33,7 +33,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this.localReviewHistoryManager = new LocalReviewHistoryManager_1.LocalReviewHistoryManager(argv.historyDir, this.proxyFn);
         this.isClearAll = false;
         web_tree_sitter_1.default.init().then(() => (this._parserInitialized = true));
-        this.proxyFn.log(`review process started ${process.pid}`);
+        this.proxyFn.log(`review process started ${process.pid}`).catch();
     }
     async getReviewData() {
         return this.activeReviewList.map((review) => review.getReviewData());
@@ -84,12 +84,12 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this.isClearAll = false;
         const isExist = await fs_1.promises.stat(projectDirPath).catch(() => false);
         if (!isExist) {
-            this.proxyFn.log(`project not exist: ${projectDirPath}`);
+            this.proxyFn.log(`project not exist: ${projectDirPath}`).catch();
             return;
         }
         const fileList = await (0, utils_1.getFilesInDirectory)(projectDirPath);
         const cppFileList = fileList.filter((file) => path_1.default.extname(file) === '.c');
-        this.proxyFn.log(`review project file num: ${cppFileList.length}`);
+        this.proxyFn.log(`review project file num: ${cppFileList.length}`).catch();
         for (let i = 0; i < cppFileList.length; i++) {
             if (this.isClearAll) {
                 break;
@@ -106,11 +106,11 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this.isClearAll = false;
         const isExist = await fs_1.promises.stat(filePath).catch(() => false);
         if (!isExist) {
-            this.proxyFn.log(`file not exist: ${filePath}`);
+            this.proxyFn.log(`file not exist: ${filePath}`).catch();
             return;
         }
         if (!this._parserInitialized) {
-            this.proxyFn.log('parser not initialized');
+            this.proxyFn.log('parser not initialized').catch();
             return;
         }
         const fileBuffer = await fs_1.promises.readFile(filePath);
@@ -132,7 +132,9 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
                 range: new master_1.Range(captures[0].node.startPosition.row, captures[0].node.startPosition.column, captures[0].node.endPosition.row, captures[0].node.endPosition.column),
                 language: 'c',
             }));
-            this.proxyFn.log(`review file: ${filePath} [Function number]: ${functionDefinitions.length}`);
+            this.proxyFn
+                .log(`review file: ${filePath} [Function number]: ${functionDefinitions.length}`)
+                .catch();
             for (let i = 0; i < functionDefinitions.length; i++) {
                 const functionDefinition = functionDefinitions[i];
                 try {
@@ -145,12 +147,12 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
                     });
                 }
                 catch (e) {
-                    this.proxyFn.log(`review file error: ${e}`);
+                    this.proxyFn.log(`review file error: ${e}`).catch();
                 }
             }
         }
         catch (error) {
-            this.proxyFn.log(`review file error: ${error}`);
+            this.proxyFn.log(`review file error: ${error}`).catch();
             return;
         }
     }
@@ -178,19 +180,19 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         };
         const runningReviewList = this.activeReviewList.filter((review) => review.isRunning);
         if (runningReviewList.length < MAX_RUNNING_REVIEW_COUNT) {
-            review.start();
+            review.start().catch();
         }
-        this.proxyFn.reviewFileListUpdated();
+        this.proxyFn.reviewFileListUpdated().catch();
     }
     async stopReview(reviewId) {
-        this.proxyFn.log(`stop review: ${reviewId}`);
+        this.proxyFn.log(`stop review: ${reviewId}`).catch();
         const review = this.activeReviewList.find((review) => review.reviewId === reviewId);
         if (review) {
-            review.stop();
+            review.stop().catch();
         }
     }
     async delReview(reviewId) {
-        this.proxyFn.log(`del review: ${reviewId}`);
+        this.proxyFn.log(`del review: ${reviewId}`).catch();
         const reviewIndex = this.activeReviewList.findIndex((review) => review.reviewId === reviewId);
         if (reviewIndex !== -1) {
             await this.activeReviewList[reviewIndex].stop();
@@ -198,36 +200,36 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
         this.activeReviewList.splice(reviewIndex, 1);
     }
     async delReviewByFile(filePath) {
-        this.proxyFn.log(`del review by file: ${filePath}`);
+        this.proxyFn.log(`del review by file: ${filePath}`).catch();
         const fileReviewList = this.activeReviewList.filter((review) => review.selection.file === filePath);
         this.activeReviewList = this.activeReviewList.filter((review) => review.selection.file !== filePath);
         for (let i = 0; i < fileReviewList.length; i++) {
             const review = fileReviewList[i];
             if (review.isRunning) {
-                review.stop();
+                review.stop().catch();
             }
         }
     }
     async retryReview(reviewId) {
-        this.proxyFn.log(`retry review: ${reviewId}`);
+        this.proxyFn.log(`retry review: ${reviewId}`).catch();
         const review = this.activeReviewList.find((review) => review.reviewId === reviewId);
         if (review) {
             await review.stop();
-            review.start();
+            review.start().catch();
         }
     }
     async setReviewFeedback(data) {
-        this.proxyFn.api_feedback_review(data);
+        this.proxyFn.api_feedback_review(data).catch();
         const review = this.activeReviewList.find((review) => review.serverTaskId === data.serverTaskId);
         if (review) {
             review.feedback = data.feedback;
             review.comment = data.comment;
-            review.saveReviewData();
+            review.saveReviewData().catch();
             review.onUpdate();
         }
     }
     async clearReview() {
-        this.proxyFn.log(`clear review`);
+        this.proxyFn.log(`clear review`).catch();
         const runningReviewList = this.activeReviewList.filter((review) => review.isRunning);
         for (let i = 0; i < runningReviewList.length; i++) {
             const review = runningReviewList[i];
@@ -4938,7 +4940,7 @@ class LocalReviewHistoryManager {
             res = parsedData.items;
         }
         catch (e) {
-            this.proxyFn.log('getReviewFileContent error', e);
+            this.proxyFn.log('getReviewFileContent error', e).catch();
         }
         // 整理格式
         res.forEach((item) => {
@@ -4976,7 +4978,7 @@ class LocalReviewHistoryManager {
                 fileParsedContent = JSON.parse(fileContent);
             }
             catch (e) {
-                this.proxyFn.log(`saveReviewItem ${filePath} error1 ${e}`);
+                this.proxyFn.log(`saveReviewItem ${filePath} error1 ${e}`).catch();
             }
         }
         for (let i = 0; i < this.tempUpdateData.length; i++) {
@@ -12766,7 +12768,7 @@ class ReviewInstance {
                 await this.getReviewResult();
                 this.state = review_1.ReviewState.Finished;
                 this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
-                this.saveReviewData();
+                this.saveReviewData().catch();
                 this.onUpdate();
                 this.onEnd();
             }
@@ -12776,7 +12778,7 @@ class ReviewInstance {
                 await this.getReviewResult();
                 this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
                 this.errorInfo = this.result ? this.result.originData : '';
-                this.saveReviewData();
+                this.saveReviewData().catch();
                 this.onUpdate();
                 this.onEnd();
             }
@@ -12789,7 +12791,7 @@ class ReviewInstance {
             this.state = review_1.ReviewState.Error;
             this.endTime = luxon_1.DateTime.now().valueOf() / 1000;
             this.errorInfo = error.message;
-            this.saveReviewData();
+            this.saveReviewData().catch();
             this.onUpdate();
             this.onEnd();
         }
@@ -12820,7 +12822,7 @@ class ReviewInstance {
         };
     }
     async stop() {
-        this.proxyFn.log('ReviewInstance.stop');
+        this.proxyFn.log('ReviewInstance.stop').catch();
         this.isRunning = false;
         if (this.timer) {
             clearInterval(this.timer);
@@ -12834,7 +12836,7 @@ class ReviewInstance {
                 await this.proxyFn.api_stop_review(this.serverTaskId);
             }
             catch (e) {
-                this.proxyFn.log('stopReview.failed', e);
+                this.proxyFn.log('stopReview.failed', e).catch();
             }
         }
         this.state = review_1.ReviewState.Error;
@@ -16243,7 +16245,7 @@ function getTruncatedContents(content, indices) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.MAX_RAG_CODE_QUERY_TIME = exports.MODULE_PATH = exports.IGNORE_COMWARE_INTERNAL = exports.IGNORE_COMMON_WORD = exports.IGNORE_RESERVED_KEYWORDS = exports.REGEXP_WORD = exports.NEW_LINE_REGEX = void 0;
+exports.SIMILAR_SNIPPETS_MAX_SEARCH_LINES = exports.IGNORE_COMWARE_INTERNAL = exports.IGNORE_COMMON_WORD = exports.IGNORE_RESERVED_KEYWORDS = exports.REGEXP_WORD = exports.NEW_LINE_REGEX = void 0;
 exports.NEW_LINE_REGEX = /\r\n|\r|\n/g;
 exports.REGEXP_WORD = /[^a-zA-Z0-9]/;
 exports.IGNORE_RESERVED_KEYWORDS = new Set([
@@ -16393,36 +16395,7 @@ exports.IGNORE_COMWARE_INTERNAL = new Set([
     'S', //? Struct
     'T', //? Typedef
 ]);
-exports.MODULE_PATH = {
-    ACCESS: 'ACCESS/src',
-    CRYPTO: 'CRYPTO/src',
-    DC: 'DC/src',
-    DEV: 'DEV/src',
-    DLP: 'DLP/src',
-    DPI: 'DPI/src',
-    DRV_SIMSWITCH: 'DRV_SIMSWITCH/src',
-    DRV_SIMWARE9: 'DRV_SIMWARE9/src',
-    FE: 'FE/src',
-    FW: 'FW/src',
-    IP: 'IP/src',
-    L2VPN: 'L2VPN/src',
-    LAN: 'LAN/src',
-    LB: 'LB/src',
-    LINK: 'LINK/src',
-    LSM: 'LSM/src',
-    MCAST: 'MCAST/src',
-    NETFWD: 'NETFWD/src',
-    OFP: 'OFP/src',
-    PSEC: 'PSEC/src',
-    PUBLIC: 'PUBLIC/include/comware',
-    QACL: 'QACL/src',
-    TEST: 'TEST/src',
-    VOICE: 'VOICE/src',
-    VPN: 'VPN/src',
-    WLAN: 'WLAN/src',
-    X86PLAT: 'X86PLAT/src',
-};
-exports.MAX_RAG_CODE_QUERY_TIME = 400;
+exports.SIMILAR_SNIPPETS_MAX_SEARCH_LINES = 10000;
 
 
 /***/ })

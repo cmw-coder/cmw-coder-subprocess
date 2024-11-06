@@ -47,7 +47,7 @@ class DiffProcess
       }
       return result;
     } catch (e) {
-      this.proxyFn.log('diffLine error', e)
+      this.proxyFn.log('diffLine error', e).catch();
       return result;
     } finally {
       this.isRunning = false;
@@ -78,8 +78,8 @@ class DiffProcess
         }
       }
       return result;
-    } catch(e) {
-      this.proxyFn.log('diffChar error', e)
+    } catch (e) {
+      this.proxyFn.log('diffChar error', e).catch();
       return result;
     } finally {
       this.isRunning = false;

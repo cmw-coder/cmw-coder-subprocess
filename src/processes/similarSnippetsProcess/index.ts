@@ -2,6 +2,7 @@ import {
   IGNORE_RESERVED_KEYWORDS,
   IGNORE_COMMON_WORD,
   IGNORE_COMWARE_INTERNAL,
+  SIMILAR_SNIPPETS_MAX_SEARCH_LINES,
 } from 'common/constants';
 import { MessageToMasterProxy } from 'common/MessageProxy';
 import {
@@ -26,12 +27,12 @@ class SimilarSnippetsProcess
 
   constructor() {
     super();
-    this.proxyFn.log(`similarSnippets process started ${process.pid}`);
+    this.proxyFn.log(`similarSnippets process started ${process.pid}`).catch();
   }
 
   enableSimilarSnippet() {
     this._slowRecentFiles = undefined;
-    this.proxyFn.log('getSimilarSnippets.enable');
+    this.proxyFn.log('getSimilarSnippets.enable').catch();
   }
 
   async getSimilarSnippets({
@@ -47,8 +48,8 @@ class SimilarSnippetsProcess
     functionSuffix: string;
     recentFiles: string[];
   }): Promise<SimilarSnippet[]> {
-    this.proxyFn.log('getSimilarSnippets: file', file);
-    this.proxyFn.log('getSimilarSnippets: recentFiles', recentFiles);
+    this.proxyFn.log('getSimilarSnippets: file', file).catch();
+    this.proxyFn.log('getSimilarSnippets: recentFiles', recentFiles).catch();
     if (this._slowRecentFiles) {
       if (
         !this._slowRecentFiles.some(
@@ -88,20 +89,21 @@ class SimilarSnippetsProcess
     const referenceSnippetLines = separateTextByLine(
       functionPrefix + functionSuffix,
     );
-    this.proxyFn.log(
-      'getSimilarSnippets.referenceSnippetLines:',
-      referenceSnippetLines,
-    );
+    this.proxyFn
+      .log('getSimilarSnippets.referenceSnippetLines:', referenceSnippetLines)
+      .catch();
 
     tabContentsWithoutComments.forEach(({ path, lines }) => {
       const { score, startLine } = getMostSimilarSnippetStartLine(
-        lines.map((line) =>
-          tokenize(line, [
-            IGNORE_RESERVED_KEYWORDS,
-            IGNORE_COMMON_WORD,
-            IGNORE_COMWARE_INTERNAL,
-          ]),
-        ),
+        lines
+          .slice(0, SIMILAR_SNIPPETS_MAX_SEARCH_LINES)
+          .map((line) =>
+            tokenize(line, [
+              IGNORE_RESERVED_KEYWORDS,
+              IGNORE_COMMON_WORD,
+              IGNORE_COMWARE_INTERNAL,
+            ]),
+          ),
         tokenize(referenceSnippetLines.join('\n'), [
           IGNORE_RESERVED_KEYWORDS,
           IGNORE_COMMON_WORD,
@@ -122,10 +124,12 @@ class SimilarSnippetsProcess
 
     const endTime = Date.now();
     if (endTime - startTime > 1000) {
-      this.proxyFn.log(`getSimilarSnippets.disable: ${endTime - startTime}`);
+      this.proxyFn
+        .log(`getSimilarSnippets.disable: ${endTime - startTime}`)
+        .catch();
       this._slowRecentFiles = recentFiles;
     }
-    this.proxyFn.log(`getSimilarSnippets.end: ${endTime - startTime}`);
+    this.proxyFn.log(`getSimilarSnippets.end: ${endTime - startTime}`).catch();
 
     return similarSnippets
       .filter((mostSimilarSnippet) => mostSimilarSnippet.score > 0)

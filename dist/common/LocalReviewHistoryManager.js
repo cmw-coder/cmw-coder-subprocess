@@ -69,7 +69,7 @@ class LocalReviewHistoryManager {
             res = parsedData.items;
         }
         catch (e) {
-            this.proxyFn.log('getReviewFileContent error', e);
+            this.proxyFn.log('getReviewFileContent error', e).catch();
         }
         // 整理格式
         res.forEach((item) => {
@@ -107,7 +107,7 @@ class LocalReviewHistoryManager {
                 fileParsedContent = JSON.parse(fileContent);
             }
             catch (e) {
-                this.proxyFn.log(`saveReviewItem ${filePath} error1 ${e}`);
+                this.proxyFn.log(`saveReviewItem ${filePath} error1 ${e}`).catch();
             }
         }
         for (let i = 0; i < this.tempUpdateData.length; i++) {

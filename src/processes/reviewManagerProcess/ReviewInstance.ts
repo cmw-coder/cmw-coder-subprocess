@@ -103,7 +103,7 @@ export class ReviewInstance {
         await this.getReviewResult();
         this.state = ReviewState.Finished;
         this.endTime = DateTime.now().valueOf() / 1000;
-        this.saveReviewData();
+        this.saveReviewData().catch();
         this.onUpdate();
         this.onEnd();
       }
@@ -113,7 +113,7 @@ export class ReviewInstance {
         await this.getReviewResult();
         this.endTime = DateTime.now().valueOf() / 1000;
         this.errorInfo = this.result ? this.result.originData : '';
-        this.saveReviewData();
+        this.saveReviewData().catch();
         this.onUpdate();
         this.onEnd();
       }
@@ -125,7 +125,7 @@ export class ReviewInstance {
       this.state = ReviewState.Error;
       this.endTime = DateTime.now().valueOf() / 1000;
       this.errorInfo = (error as Error).message;
-      this.saveReviewData();
+      this.saveReviewData().catch();
       this.onUpdate();
       this.onEnd();
     }
@@ -162,7 +162,7 @@ export class ReviewInstance {
   }
 
   async stop() {
-    this.proxyFn.log('ReviewInstance.stop');
+    this.proxyFn.log('ReviewInstance.stop').catch();
     this.isRunning = false;
     if (this.timer) {
       clearInterval(this.timer);
@@ -177,7 +177,7 @@ export class ReviewInstance {
       try {
         await this.proxyFn.api_stop_review(this.serverTaskId);
       } catch (e) {
-        this.proxyFn.log('stopReview.failed', e);
+        this.proxyFn.log('stopReview.failed', e).catch();
       }
     }
     this.state = ReviewState.Error;
