@@ -1,10 +1,9 @@
 import { MessageToMasterProxy } from 'common/MessageProxy';
 import { DiffChildHandler, DiffMasterHandler } from 'types/diffHandler';
-import DiffMatchPatch from 'diff-match-patch';
+import DiffMatchPatch, { Diff } from 'diff-match-patch';
 import { DiffCharResult, DiffLineResult } from 'types/diff';
 import {
   Differ,
-  greet,
 } from 'public/wasm-diff-match-patch/wasm_diff_match_patch';
 
 class DiffProcess
@@ -36,7 +35,7 @@ class DiffProcess
       const lineText1 = a.chars1;
       const lineText2 = a.chars2;
       const lineArray = a.lineArray;
-      const lineDiffs = this.dmp.diff_main(lineText1, lineText2, false);
+      const lineDiffs: Diff[] = this.wasmDmp.diff_main(lineText1, lineText2);
       this.dmp.diff_charsToLines_(lineDiffs, lineArray);
       this.dmp.diff_cleanupSemantic(lineDiffs);
       for (let i = 0; i < lineDiffs.length; i++) {
@@ -72,7 +71,7 @@ class DiffProcess
     };
     try {
       this.isRunning = true;
-      const charDiffs = this.dmp.diff_main(text1, text2, false);
+      const charDiffs = this.wasmDmp.diff_main(text1, text2);
       for (let i = 0; i < charDiffs.length; i++) {
         const charDiff = charDiffs[i];
         if (charDiff[0] === 1) {
@@ -88,22 +87,6 @@ class DiffProcess
       return result;
     } finally {
       this.isRunning = false;
-    }
-  }
-
-  async test(
-    name: string,
-    text1: string,
-    text2: string,
-  ): Promise<{
-    greet: string;
-    diffResult: string;
-  }> {
-    const greetResult = greet(name);
-    const diffResult = this.wasmDmp.diff_main(text1, text2);
-    return {
-      greet: greetResult,
-      diffResult,
     }
   }
 }

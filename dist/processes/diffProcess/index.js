@@ -28,7 +28,7 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
             const lineText1 = a.chars1;
             const lineText2 = a.chars2;
             const lineArray = a.lineArray;
-            const lineDiffs = this.dmp.diff_main(lineText1, lineText2, false);
+            const lineDiffs = this.wasmDmp.diff_main(lineText1, lineText2);
             this.dmp.diff_charsToLines_(lineDiffs, lineArray);
             this.dmp.diff_cleanupSemantic(lineDiffs);
             for (let i = 0; i < lineDiffs.length; i++) {
@@ -62,7 +62,7 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
         };
         try {
             this.isRunning = true;
-            const charDiffs = this.dmp.diff_main(text1, text2, false);
+            const charDiffs = this.wasmDmp.diff_main(text1, text2);
             for (let i = 0; i < charDiffs.length; i++) {
                 const charDiff = charDiffs[i];
                 if (charDiff[0] === 1) {
@@ -81,14 +81,6 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
         finally {
             this.isRunning = false;
         }
-    }
-    async test(name, text1, text2) {
-        const greetResult = (0, wasm_diff_match_patch_1.greet)(name);
-        const diffResult = this.wasmDmp.diff_main(text1, text2);
-        return {
-            greet: greetResult,
-            diffResult,
-        };
     }
 }
 new DiffProcess();

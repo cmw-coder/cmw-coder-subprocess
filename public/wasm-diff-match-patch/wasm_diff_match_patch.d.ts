@@ -1,17 +1,12 @@
 /* tslint:disable */
 /* eslint-disable */
-/**
- * @param {string} name
- * @returns {string}
- */
-export function greet(name: string): string;
 export class Differ {
   free(): void;
   constructor();
   /**
    * @param {string} old
    * @param {string} _new
-   * @returns {string}
+   * @returns {any}
    */
-  diff_main(old: string, _new: string): string;
+  diff_main(old: string, _new: string): any;
 }
