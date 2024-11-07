@@ -2,14 +2,13 @@
 /**@typedef {import('webpack').Configuration} WebpackConfig */
 
 const path = require('path');
-// const nodeExternals = require('webpack-node-externals');
 const CopyPlugin = require('copy-webpack-plugin');
 
 /**@type WebpackConfig */
 const buildConfig = {
   mode: 'none',
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.ts', '.js', '.wasm'],
     alias: {
       types: path.resolve('src/types'),
       common: path.resolve('src/common'),
@@ -65,12 +64,18 @@ const buildConfig = {
           to: path.resolve('dist/public/tree-sitter/tree-sitter-c.wasm'),
         },
         {
-          from: path.resolve('node_modules/diff-match-patch-wasm/diff_match_patch_wasm_bg.wasm'),
+          from: path.resolve(
+            'node_modules/diff-match-patch-wasm/diff_match_patch_wasm_bg.wasm',
+          ),
           to: path.resolve('dist/diff_match_patch_wasm_bg.wasm'),
         },
       ],
     }),
   ],
+  experiments: {
+    asyncWebAssembly: true,
+    syncWebAssembly: true
+  },
 };
 
 module.exports = [buildConfig];
