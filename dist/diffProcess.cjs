@@ -1005,9 +1005,27 @@ module.exports = require("child_process");
 /* 26 */,
 /* 27 */,
 /* 28 */,
-/* 29 */,
-/* 30 */,
-/* 31 */,
+/* 29 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs");
+
+/***/ }),
+/* 30 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("util");
+
+/***/ }),
+/* 31 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("path");
+
+/***/ }),
 /* 32 */,
 /* 33 */,
 /* 34 */,
@@ -1076,12 +1094,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const MessageProxy_1 = __webpack_require__(1);
 const diff_match_patch_1 = __importDefault(__webpack_require__(90));
-const diff_match_patch_wasm_1 = __webpack_require__(91);
+const diff_match_patch_wasm_node_1 = __webpack_require__(91);
 class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
     constructor() {
         super();
         this.dmp = new diff_match_patch_1.default();
-        this.wasmDmp = new diff_match_patch_wasm_1.Differ();
+        this.wasmDmp = new diff_match_patch_wasm_node_1.Differ();
         this.isRunning = false;
         this.dmp.Diff_Timeout = 0;
     }
@@ -3382,79 +3400,13 @@ module.exports.DIFF_EQUAL = DIFF_EQUAL;
 
 /***/ }),
 /* 91 */
-/***/ ((__webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Differ: () => (/* reexport safe */ _diff_match_patch_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.Differ),
-/* harmony export */   __wbg_String_b9412f8799faab3e: () => (/* reexport safe */ _diff_match_patch_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.__wbg_String_b9412f8799faab3e),
-/* harmony export */   __wbg_getTime_41225036a0393d63: () => (/* reexport safe */ _diff_match_patch_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.__wbg_getTime_41225036a0393d63),
-/* harmony export */   __wbg_new0_218ada33b570be35: () => (/* reexport safe */ _diff_match_patch_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.__wbg_new0_218ada33b570be35),
-/* harmony export */   __wbg_new_034f913e7636e987: () => (/* reexport safe */ _diff_match_patch_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.__wbg_new_034f913e7636e987),
-/* harmony export */   __wbg_set_425e70f7c64ac962: () => (/* reexport safe */ _diff_match_patch_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.__wbg_set_425e70f7c64ac962),
-/* harmony export */   __wbg_set_wasm: () => (/* reexport safe */ _diff_match_patch_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.__wbg_set_wasm),
-/* harmony export */   __wbindgen_number_new: () => (/* reexport safe */ _diff_match_patch_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_number_new),
-/* harmony export */   __wbindgen_object_drop_ref: () => (/* reexport safe */ _diff_match_patch_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_object_drop_ref),
-/* harmony export */   __wbindgen_string_new: () => (/* reexport safe */ _diff_match_patch_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_string_new),
-/* harmony export */   __wbindgen_throw: () => (/* reexport safe */ _diff_match_patch_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.__wbindgen_throw)
-/* harmony export */ });
-/* harmony import */ var _diff_match_patch_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(92);
-/* harmony import */ var _diff_match_patch_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(93);
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_diff_match_patch_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_1__]);
-_diff_match_patch_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_1__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 
-
-(0,_diff_match_patch_wasm_bg_js__WEBPACK_IMPORTED_MODULE_0__.__wbg_set_wasm)(_diff_match_patch_wasm_bg_wasm__WEBPACK_IMPORTED_MODULE_1__);
-__webpack_async_result__();
-} catch(e) { __webpack_async_result__(e); } });
-
-/***/ }),
-/* 92 */
-/***/ ((module, exports, __webpack_require__) => {
-
-"use strict";
-/* harmony import */ var WEBPACK_IMPORTED_MODULE_0 = __webpack_require__(93);
-module.exports = __webpack_require__.v(exports, module.id, "8d2406f7d67d90d26c07", {
-	"./diff_match_patch_wasm_bg.js": {
-		"__wbindgen_object_drop_ref": WEBPACK_IMPORTED_MODULE_0.__wbindgen_object_drop_ref,
-		"__wbindgen_string_new": WEBPACK_IMPORTED_MODULE_0.__wbindgen_string_new,
-		"__wbg_String_b9412f8799faab3e": WEBPACK_IMPORTED_MODULE_0.__wbg_String_b9412f8799faab3e,
-		"__wbindgen_number_new": WEBPACK_IMPORTED_MODULE_0.__wbindgen_number_new,
-		"__wbg_new_034f913e7636e987": WEBPACK_IMPORTED_MODULE_0.__wbg_new_034f913e7636e987,
-		"__wbg_set_425e70f7c64ac962": WEBPACK_IMPORTED_MODULE_0.__wbg_set_425e70f7c64ac962,
-		"__wbg_getTime_41225036a0393d63": WEBPACK_IMPORTED_MODULE_0.__wbg_getTime_41225036a0393d63,
-		"__wbg_new0_218ada33b570be35": WEBPACK_IMPORTED_MODULE_0.__wbg_new0_218ada33b570be35,
-		"__wbindgen_throw": WEBPACK_IMPORTED_MODULE_0.__wbindgen_throw
-	}
-});
-
-/***/ }),
-/* 93 */
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Differ: () => (/* binding */ Differ),
-/* harmony export */   __wbg_String_b9412f8799faab3e: () => (/* binding */ __wbg_String_b9412f8799faab3e),
-/* harmony export */   __wbg_getTime_41225036a0393d63: () => (/* binding */ __wbg_getTime_41225036a0393d63),
-/* harmony export */   __wbg_new0_218ada33b570be35: () => (/* binding */ __wbg_new0_218ada33b570be35),
-/* harmony export */   __wbg_new_034f913e7636e987: () => (/* binding */ __wbg_new_034f913e7636e987),
-/* harmony export */   __wbg_set_425e70f7c64ac962: () => (/* binding */ __wbg_set_425e70f7c64ac962),
-/* harmony export */   __wbg_set_wasm: () => (/* binding */ __wbg_set_wasm),
-/* harmony export */   __wbindgen_number_new: () => (/* binding */ __wbindgen_number_new),
-/* harmony export */   __wbindgen_object_drop_ref: () => (/* binding */ __wbindgen_object_drop_ref),
-/* harmony export */   __wbindgen_string_new: () => (/* binding */ __wbindgen_string_new),
-/* harmony export */   __wbindgen_throw: () => (/* binding */ __wbindgen_throw)
-/* harmony export */ });
+let imports = {};
+imports['__wbindgen_placeholder__'] = module.exports;
 let wasm;
-function __wbg_set_wasm(val) {
-    wasm = val;
-}
-
+const { TextDecoder, TextEncoder } = __webpack_require__(30);
 
 const heap = new Array(128).fill(undefined);
 
@@ -3476,9 +3428,7 @@ function takeObject(idx) {
     return ret;
 }
 
-const lTextDecoder = typeof TextDecoder === 'undefined' ? (0, module.require)('util').TextDecoder : TextDecoder;
-
-let cachedTextDecoder = new lTextDecoder('utf-8', { ignoreBOM: true, fatal: true });
+let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
 
 cachedTextDecoder.decode();
 
@@ -3507,9 +3457,7 @@ function addHeapObject(obj) {
 
 let WASM_VECTOR_LEN = 0;
 
-const lTextEncoder = typeof TextEncoder === 'undefined' ? (0, module.require)('util').TextEncoder : TextEncoder;
-
-let cachedTextEncoder = new lTextEncoder('utf-8');
+let cachedTextEncoder = new TextEncoder('utf-8');
 
 const encodeString = (typeof cachedTextEncoder.encodeInto === 'function'
     ? function (arg, view) {
@@ -3620,17 +3568,18 @@ class Differ {
         }
     }
 }
+module.exports.Differ = Differ;
 
-function __wbindgen_object_drop_ref(arg0) {
+module.exports.__wbindgen_object_drop_ref = function(arg0) {
     takeObject(arg0);
 };
 
-function __wbindgen_string_new(arg0, arg1) {
+module.exports.__wbindgen_string_new = function(arg0, arg1) {
     const ret = getStringFromWasm0(arg0, arg1);
     return addHeapObject(ret);
 };
 
-function __wbg_String_b9412f8799faab3e(arg0, arg1) {
+module.exports.__wbg_String_b9412f8799faab3e = function(arg0, arg1) {
     const ret = String(getObject(arg1));
     const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_export_0, wasm.__wbindgen_export_1);
     const len1 = WASM_VECTOR_LEN;
@@ -3638,33 +3587,41 @@ function __wbg_String_b9412f8799faab3e(arg0, arg1) {
     getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
 };
 
-function __wbindgen_number_new(arg0) {
+module.exports.__wbindgen_number_new = function(arg0) {
     const ret = arg0;
     return addHeapObject(ret);
 };
 
-function __wbg_new_034f913e7636e987() {
+module.exports.__wbg_new_034f913e7636e987 = function() {
     const ret = new Array();
     return addHeapObject(ret);
 };
 
-function __wbg_set_425e70f7c64ac962(arg0, arg1, arg2) {
+module.exports.__wbg_set_425e70f7c64ac962 = function(arg0, arg1, arg2) {
     getObject(arg0)[arg1 >>> 0] = takeObject(arg2);
 };
 
-function __wbg_getTime_41225036a0393d63(arg0) {
+module.exports.__wbg_getTime_41225036a0393d63 = function(arg0) {
     const ret = getObject(arg0).getTime();
     return ret;
 };
 
-function __wbg_new0_218ada33b570be35() {
+module.exports.__wbg_new0_218ada33b570be35 = function() {
     const ret = new Date();
     return addHeapObject(ret);
 };
 
-function __wbindgen_throw(arg0, arg1) {
+module.exports.__wbindgen_throw = function(arg0, arg1) {
     throw new Error(getStringFromWasm0(arg0, arg1));
 };
+
+const path = (__webpack_require__(31).join)(__dirname, 'diff_match_patch_wasm_node_bg.wasm');
+const bytes = (__webpack_require__(29).readFileSync)(path);
+
+const wasmModule = new WebAssembly.Module(bytes);
+const wasmInstance = new WebAssembly.Instance(wasmModule, imports);
+wasm = wasmInstance.exports;
+module.exports.__wasm = wasm;
 
 
 
@@ -3683,7 +3640,7 @@ function __wbindgen_throw(arg0, arg1) {
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			id: moduleId,
+/******/ 			// no module.id needed
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
@@ -3696,75 +3653,6 @@ function __wbindgen_throw(arg0, arg1) {
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/async module */
-/******/ 	(() => {
-/******/ 		var webpackQueues = typeof Symbol === "function" ? Symbol("webpack queues") : "__webpack_queues__";
-/******/ 		var webpackExports = typeof Symbol === "function" ? Symbol("webpack exports") : "__webpack_exports__";
-/******/ 		var webpackError = typeof Symbol === "function" ? Symbol("webpack error") : "__webpack_error__";
-/******/ 		var resolveQueue = (queue) => {
-/******/ 			if(queue && queue.d < 1) {
-/******/ 				queue.d = 1;
-/******/ 				queue.forEach((fn) => (fn.r--));
-/******/ 				queue.forEach((fn) => (fn.r-- ? fn.r++ : fn()));
-/******/ 			}
-/******/ 		}
-/******/ 		var wrapDeps = (deps) => (deps.map((dep) => {
-/******/ 			if(dep !== null && typeof dep === "object") {
-/******/ 				if(dep[webpackQueues]) return dep;
-/******/ 				if(dep.then) {
-/******/ 					var queue = [];
-/******/ 					queue.d = 0;
-/******/ 					dep.then((r) => {
-/******/ 						obj[webpackExports] = r;
-/******/ 						resolveQueue(queue);
-/******/ 					}, (e) => {
-/******/ 						obj[webpackError] = e;
-/******/ 						resolveQueue(queue);
-/******/ 					});
-/******/ 					var obj = {};
-/******/ 					obj[webpackQueues] = (fn) => (fn(queue));
-/******/ 					return obj;
-/******/ 				}
-/******/ 			}
-/******/ 			var ret = {};
-/******/ 			ret[webpackQueues] = x => {};
-/******/ 			ret[webpackExports] = dep;
-/******/ 			return ret;
-/******/ 		}));
-/******/ 		__webpack_require__.a = (module, body, hasAwait) => {
-/******/ 			var queue;
-/******/ 			hasAwait && ((queue = []).d = -1);
-/******/ 			var depQueues = new Set();
-/******/ 			var exports = module.exports;
-/******/ 			var currentDeps;
-/******/ 			var outerResolve;
-/******/ 			var reject;
-/******/ 			var promise = new Promise((resolve, rej) => {
-/******/ 				reject = rej;
-/******/ 				outerResolve = resolve;
-/******/ 			});
-/******/ 			promise[webpackExports] = exports;
-/******/ 			promise[webpackQueues] = (fn) => (queue && fn(queue), depQueues.forEach(fn), promise["catch"](x => {}));
-/******/ 			module.exports = promise;
-/******/ 			body((deps) => {
-/******/ 				currentDeps = wrapDeps(deps);
-/******/ 				var fn;
-/******/ 				var getResult = () => (currentDeps.map((d) => {
-/******/ 					if(d[webpackError]) throw d[webpackError];
-/******/ 					return d[webpackExports];
-/******/ 				}))
-/******/ 				var promise = new Promise((resolve) => {
-/******/ 					fn = () => (resolve(getResult));
-/******/ 					fn.r = 0;
-/******/ 					var fnQueue = (q) => (q !== queue && !depQueues.has(q) && (depQueues.add(q), q && !q.d && (fn.r++, q.push(fn))));
-/******/ 					currentDeps.map((dep) => (dep[webpackQueues](fnQueue)));
-/******/ 				});
-/******/ 				return fn.r ? promise : getResult();
-/******/ 			}, (err) => ((err ? reject(promise[webpackError] = err) : outerResolve(exports)), resolveQueue(queue)));
-/******/ 			queue && queue.d < 0 && (queue.d = 0);
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	(() => {
 /******/ 		// getDefaultExport function for compatibility with non-harmony modules
@@ -3803,35 +3691,6 @@ function __wbindgen_throw(arg0, arg1) {
 /******/ 			}
 /******/ 			Object.defineProperty(exports, '__esModule', { value: true });
 /******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/wasm loading */
-/******/ 	(() => {
-/******/ 		__webpack_require__.v = (exports, wasmModuleId, wasmModuleHash, importsObj) => {
-/******/ 			return new Promise(function (resolve, reject) {
-/******/ 				try {
-/******/ 					var { readFile } = require('fs');
-/******/ 					var { join } = require('path');
-/******/ 		
-/******/ 					readFile(join(__dirname, "" + wasmModuleHash + ".module.wasm"), function(err, buffer){
-/******/ 						if (err) return reject(err);
-/******/ 		
-/******/ 						// Fake fetch response
-/******/ 						resolve({
-/******/ 							arrayBuffer() { return buffer; }
-/******/ 						});
-/******/ 					});
-/******/ 				} catch (err) { reject(err); }
-/******/ 			})
-/******/ 				.then((x) => (x.arrayBuffer()))
-/******/ 				.then((bytes) => (WebAssembly.instantiate(bytes, importsObj)))
-/******/ 				.then((res) => (Object.assign(exports, res.instance.exports)));
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/publicPath */
-/******/ 	(() => {
-/******/ 		__webpack_require__.p = "";
 /******/ 	})();
 /******/ 	
 /************************************************************************/

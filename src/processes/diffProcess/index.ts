@@ -2,7 +2,7 @@ import { MessageToMasterProxy } from 'common/MessageProxy';
 import { DiffChildHandler, DiffMasterHandler } from 'types/diffHandler';
 import DiffMatchPatch, { Diff } from 'diff-match-patch';
 import { DiffCharResult, DiffLineResult } from 'types/diff';
-import { Differ } from 'diff-match-patch-wasm';
+import { Differ } from 'diff-match-patch-wasm-node';
 
 class DiffProcess
   extends MessageToMasterProxy<DiffMasterHandler>

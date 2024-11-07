@@ -5,12 +5,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const MessageProxy_1 = require("../../common/MessageProxy");
 const diff_match_patch_1 = __importDefault(require("diff-match-patch"));
-const diff_match_patch_wasm_1 = require("diff-match-patch-wasm");
+const diff_match_patch_wasm_node_1 = require("diff-match-patch-wasm-node");
 class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
     constructor() {
         super();
         this.dmp = new diff_match_patch_1.default();
-        this.wasmDmp = new diff_match_patch_wasm_1.Differ();
+        this.wasmDmp = new diff_match_patch_wasm_node_1.Differ();
         this.isRunning = false;
         this.dmp.Diff_Timeout = 0;
     }

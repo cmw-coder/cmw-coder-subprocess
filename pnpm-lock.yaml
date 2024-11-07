@@ -11,9 +11,9 @@ importers:
       diff-match-patch:
         specifier: ^1.0.5
         version: 1.0.5
-      diff-match-patch-wasm:
-        specifier: ^1.0.1
-        version: 1.0.1
+      diff-match-patch-wasm-node:
+        specifier: ^1.0.0
+        version: 1.0.0
       iconv-lite:
         specifier: ^0.6.3
         version: 0.6.3
@@ -415,8 +415,8 @@ packages:
   deep-is@0.1.4:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
 
-  diff-match-patch-wasm@1.0.1:
-    resolution: {integrity: sha512-5FSdu3hlCoZfHmxxbWKE8OWGoouKB+dby2Gbnq0uOOJ/qe3bZtyGUlMj6e2j65oJWqf9hVPLAhkc617oM69ndw==}
+  diff-match-patch-wasm-node@1.0.0:
+    resolution: {integrity: sha512-TkdjnPPzsOiObvWrE+dZQpeHenk9/PelwF6xdJzrSEoWvCPs/2nPoL6qasSVdQU3PfaDZgiJy7gs8XYKtcNrbw==}
 
   diff-match-patch@1.0.5:
     resolution: {integrity: sha512-IayShXAgj/QMXgB0IWmKx+rOPuGMhqm5w6jvFxmVenXKIzRqTAAsbBPT3kWQeGANj3jGgvcvv4yK6SxqYmikgw==}
@@ -1487,7 +1487,7 @@ snapshots:
 
   deep-is@0.1.4: {}
 
-  diff-match-patch-wasm@1.0.1: {}
+  diff-match-patch-wasm-node@1.0.0: {}
 
   diff-match-patch@1.0.5: {}
 
