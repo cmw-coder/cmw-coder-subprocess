@@ -1,0 +1,33 @@
+import { ExtraData, Selection, Feedback, Reference, ReviewData, ReviewResult, ReviewState } from '../../types/review';
+import { ReviewMasterHandler } from '../../types/ReviewHandler';
+import { LocalReviewHistoryManager } from '../../common/LocalReviewHistoryManager';
+export declare class ReviewInstance {
+    private extraData;
+    private proxyFn;
+    private localReviewHistoryManager;
+    selection: Selection;
+    timer?: NodeJS.Timeout;
+    reviewId: string;
+    serverTaskId: string;
+    state: ReviewState;
+    result?: ReviewResult;
+    references: Reference[];
+    feedback: Feedback;
+    comment: string;
+    errorInfo: string;
+    createTime: number;
+    startTime: number;
+    referenceTime: number;
+    endTime: number;
+    isRunning: boolean;
+    onStart: () => void;
+    onUpdate: () => void;
+    onEnd: () => void;
+    constructor(selection: Selection, extraData: ExtraData, proxyFn: ReviewMasterHandler, localReviewHistoryManager: LocalReviewHistoryManager);
+    start(): Promise<void>;
+    refreshReviewState(): Promise<void>;
+    getReviewResult(): Promise<void>;
+    saveReviewData(): Promise<void>;
+    getReviewData(): ReviewData;
+    stop(): Promise<void>;
+}
