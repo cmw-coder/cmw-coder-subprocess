@@ -4,7 +4,7 @@ import DiffMatchPatch, { Diff } from 'diff-match-patch';
 import { DiffCharResult, DiffLineResult } from 'types/diff';
 import {
   Differ,
-} from 'public/wasm-diff-match-patch/wasm_diff_match_patch';
+} from 'diff-match-patch-wasm';
 
 class DiffProcess
   extends MessageToMasterProxy<DiffMasterHandler>

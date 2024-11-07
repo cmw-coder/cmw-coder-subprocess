@@ -11,6 +11,9 @@ importers:
       diff-match-patch:
         specifier: ^1.0.5
         version: 1.0.5
+      diff-match-patch-wasm:
+        specifier: ^1.0.0
+        version: 1.0.0
       iconv-lite:
         specifier: ^0.6.3
         version: 0.6.3
@@ -50,7 +53,7 @@ importers:
         version: 9.1.0(eslint@9.8.0)
       eslint-plugin-prettier:
         specifier: ^5.2.1
-        version: 5.2.1(eslint-config-prettier@9.1.0)(eslint@9.8.0)(prettier@3.3.3)
+        version: 5.2.1(eslint-config-prettier@9.1.0(eslint@9.8.0))(eslint@9.8.0)(prettier@3.3.3)
       prettier:
         specifier: ^3.3.3
         version: 3.3.3
@@ -406,6 +409,9 @@ packages:
 
   deep-is@0.1.4:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
+
+  diff-match-patch-wasm@1.0.0:
+    resolution: {integrity: sha512-pNQExVltN4SS1K3xx8oblcjrrSSSvTSE8O/+Y+fsyrNKVyENiPLT91BpBzZJCKU75SQsKLuNOYT2q5jOuConJg==}
 
   diff-match-patch@1.0.5:
     resolution: {integrity: sha512-IayShXAgj/QMXgB0IWmKx+rOPuGMhqm5w6jvFxmVenXKIzRqTAAsbBPT3kWQeGANj3jGgvcvv4yK6SxqYmikgw==}
@@ -1334,7 +1340,7 @@ snapshots:
   acorn@8.12.1: {}
 
   ajv-formats@2.1.1(ajv@8.17.1):
-    dependencies:
+    optionalDependencies:
       ajv: 8.17.1
 
   ajv-keywords@3.5.2(ajv@6.12.6):
@@ -1470,6 +1476,8 @@ snapshots:
 
   deep-is@0.1.4: {}
 
+  diff-match-patch-wasm@1.0.0: {}
+
   diff-match-patch@1.0.5: {}
 
   dir-glob@3.0.1:
@@ -1497,13 +1505,14 @@ snapshots:
     dependencies:
       eslint: 9.8.0
 
-  eslint-plugin-prettier@5.2.1(eslint-config-prettier@9.1.0)(eslint@9.8.0)(prettier@3.3.3):
+  eslint-plugin-prettier@5.2.1(eslint-config-prettier@9.1.0(eslint@9.8.0))(eslint@9.8.0)(prettier@3.3.3):
     dependencies:
       eslint: 9.8.0
-      eslint-config-prettier: 9.1.0(eslint@9.8.0)
       prettier: 3.3.3
       prettier-linter-helpers: 1.0.0
       synckit: 0.9.1
+    optionalDependencies:
+      eslint-config-prettier: 9.1.0(eslint@9.8.0)
 
   eslint-scope@5.1.1:
     dependencies:
@@ -2101,8 +2110,9 @@ snapshots:
       tapable: 2.2.1
       terser-webpack-plugin: 5.3.10(webpack@5.95.0)
       watchpack: 2.4.1
-      webpack-cli: 5.1.4(webpack@5.95.0)
       webpack-sources: 3.2.3
+    optionalDependencies:
+      webpack-cli: 5.1.4(webpack@5.95.0)
     transitivePeerDependencies:
       - '@swc/core'
       - esbuild

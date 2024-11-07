@@ -65,8 +65,8 @@ const buildConfig = {
           to: path.resolve('dist/public/tree-sitter/tree-sitter-c.wasm'),
         },
         {
-          from: path.resolve('public/wasm-diff-match-patch/wasm_diff_match_patch_bg.wasm'),
-          to: path.resolve('dist/wasm_diff_match_patch_bg.wasm'),
+          from: path.resolve('node_modules/diff-match-patch-wasm/diff_match_patch_wasm_bg.wasm'),
+          to: path.resolve('dist/diff_match_patch_wasm_bg.wasm'),
         },
       ],
     }),
