@@ -5,12 +5,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const MessageProxy_1 = require("../../common/MessageProxy");
 const diff_match_patch_1 = __importDefault(require("diff-match-patch"));
-// import { Differ } from 'diff-match-patch-wasm-node';
+const diff_match_patch_wasm_node_1 = require("diff-match-patch-wasm-node");
 class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
     constructor() {
         super();
         this.dmp = new diff_match_patch_1.default();
-        // private wasmDmp = new Differ();
+        this.wasmDmp = new diff_match_patch_wasm_node_1.Differ();
         this.isRunning = false;
         this.dmp.Diff_Timeout = 0;
     }
@@ -28,17 +28,19 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
             const lineText1 = a.chars1;
             const lineText2 = a.chars2;
             const lineArray = a.lineArray;
-            const lineDiffs = this.dmp.diff_main(lineText1, lineText2);
+            const lineDiffs = this.wasmDmp.diff_main(lineText1, lineText2);
             this.dmp.diff_charsToLines_(lineDiffs, lineArray);
             this.dmp.diff_cleanupSemantic(lineDiffs);
             for (let i = 0; i < lineDiffs.length; i++) {
                 const lineDiff = lineDiffs[i];
                 if (lineDiff[0] === 1) {
-                    const lines = lineDiff[1].split(/\n|\r\n/);
+                    // 通过 trim 去除空换行
+                    const lines = lineDiff[1].trim().split(/\n|\r\n/);
                     result.added += lines.length - 1;
                 }
                 if (lineDiff[0] === -1) {
-                    const lines = lineDiff[1].split(/\n|\r\n/);
+                    // 通过 trim 去除空换行
+                    const lines = lineDiff[1].trim().split(/\n|\r\n/);
                     result.deleted += lines.length - 1;
                 }
             }
@@ -62,7 +64,7 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
         };
         try {
             this.isRunning = true;
-            const charDiffs = this.dmp.diff_main(text1, text2);
+            const charDiffs = this.wasmDmp.diff_main(text1, text2);
             for (let i = 0; i < charDiffs.length; i++) {
                 const charDiff = charDiffs[i];
                 if (charDiff[0] === 1) {
