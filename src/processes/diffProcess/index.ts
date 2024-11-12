@@ -2,14 +2,14 @@ import { MessageToMasterProxy } from 'common/MessageProxy';
 import { DiffChildHandler, DiffMasterHandler } from 'types/diffHandler';
 import DiffMatchPatch, { Diff } from 'diff-match-patch';
 import { DiffCharResult, DiffLineResult } from 'types/diff';
-// import { Differ } from 'diff-match-patch-wasm-node';
+import { Differ } from 'diff-match-patch-wasm-node';
 
 class DiffProcess
   extends MessageToMasterProxy<DiffMasterHandler>
   implements DiffChildHandler
 {
   private dmp = new DiffMatchPatch();
-  // private wasmDmp = new Differ();
+  private wasmDmp = new Differ();
   private isRunning = false;
   constructor() {
     super();
@@ -33,17 +33,19 @@ class DiffProcess
       const lineText1 = a.chars1;
       const lineText2 = a.chars2;
       const lineArray = a.lineArray;
-      const lineDiffs: Diff[] = this.dmp.diff_main(lineText1, lineText2);
+      const lineDiffs: Diff[] = this.wasmDmp.diff_main(lineText1, lineText2);
       this.dmp.diff_charsToLines_(lineDiffs, lineArray);
       this.dmp.diff_cleanupSemantic(lineDiffs);
       for (let i = 0; i < lineDiffs.length; i++) {
         const lineDiff = lineDiffs[i];
         if (lineDiff[0] === 1) {
-          const lines = lineDiff[1].split(/\n|\r\n/);
+          // 通过 trim 去除空换行
+          const lines = lineDiff[1].trim().split(/\n|\r\n/);
           result.added += lines.length - 1;
         }
         if (lineDiff[0] === -1) {
-          const lines = lineDiff[1].split(/\n|\r\n/);
+          // 通过 trim 去除空换行
+          const lines = lineDiff[1].trim().split(/\n|\r\n/);
           result.deleted += lines.length - 1;
         }
       }
@@ -69,7 +71,7 @@ class DiffProcess
     };
     try {
       this.isRunning = true;
-      const charDiffs = this.dmp.diff_main(text1, text2);
+      const charDiffs = this.wasmDmp.diff_main(text1, text2);
       for (let i = 0; i < charDiffs.length; i++) {
         const charDiff = charDiffs[i];
         if (charDiff[0] === 1) {
