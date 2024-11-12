@@ -1123,11 +1123,13 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
             for (let i = 0; i < lineDiffs.length; i++) {
                 const lineDiff = lineDiffs[i];
                 if (lineDiff[0] === 1) {
+                    this.proxyFn.log('diffLine added', lineDiff[1]).catch();
                     // 通过 trim 去除空换行
                     const lines = lineDiff[1].trim().split(/\n|\r\n/);
                     result.added += lines.length - 1;
                 }
                 if (lineDiff[0] === -1) {
+                    this.proxyFn.log('diffLine deleted', lineDiff[1]).catch();
                     // 通过 trim 去除空换行
                     const lines = lineDiff[1].trim().split(/\n|\r\n/);
                     result.deleted += lines.length - 1;
@@ -1136,7 +1138,7 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
             return result;
         }
         catch (e) {
-            this.proxyFn.log('diffLine error', e).catch();
+            this.proxyFn.log('diffLine error', e.message || e).catch();
             return result;
         }
         finally {
