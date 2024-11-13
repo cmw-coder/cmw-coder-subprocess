@@ -28,6 +28,10 @@ class DiffProcess
       deleted: 0,
     };
     try {
+      this.proxyFn.log('diffLine', {
+        text1Length: text1.length,
+        text2Length: text2.length,
+      }).catch();
       this.isRunning = true;
       const a = this.dmp.diff_linesToChars_(text1, text2);
       const lineText1 = a.chars1;
