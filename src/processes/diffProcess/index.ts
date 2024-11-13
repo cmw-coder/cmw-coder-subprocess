@@ -40,14 +40,13 @@ class DiffProcess
         const lineDiff = lineDiffs[i];
         if (lineDiff[0] === 1) {
           this.proxyFn.log('diffLine added', lineDiff[1]).catch();
-          // 通过 trim 去除空换行
-          const lines = lineDiff[1].trim().split(/\n|\r\n/);
+          const lines = lineDiff[1].split(/\r\n|\n/).filter(line => line.trim() !== '');
           result.added += lines.length - 1;
         }
         if (lineDiff[0] === -1) {
           this.proxyFn.log('diffLine deleted', lineDiff[1]).catch();
           // 通过 trim 去除空换行
-          const lines = lineDiff[1].trim().split(/\n|\r\n/);
+          const lines = lineDiff[1].split(/\r\n|\n/).filter(line => line.trim() !== '');
           result.deleted += lines.length - 1;
         }
       }
