@@ -38,12 +38,12 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
             for (let i = 0; i < lineDiffs.length; i++) {
                 const lineDiff = lineDiffs[i];
                 if (lineDiff[0] === 1) {
-                    this.proxyFn.log('diffLine added', lineDiff[1]).catch();
+                    this.proxyFn.log('diffLine added', lineDiff).catch();
                     const lines = lineDiff[1].split(/\r\n|\n/).filter(line => line.trim() !== '');
                     result.added += lines.length;
                 }
                 if (lineDiff[0] === -1) {
-                    this.proxyFn.log('diffLine deleted', lineDiff[1]).catch();
+                    this.proxyFn.log('diffLine deleted', lineDiff).catch();
                     const lines = lineDiff[1].split(/\r\n|\n/).filter(line => line.trim() !== '');
                     result.deleted += lines.length;
                 }
