@@ -1,3 +1,4 @@
+import { ChildProcess } from 'child_process';
 export interface processMessage {
     id?: string;
     key?: string;
@@ -16,11 +17,16 @@ export declare class MessageToChildProxy<T = {
     [key: string]: (...args: any[]) => Promise<any>;
 }> {
     private scriptPath;
-    private childProcess;
+    private arg;
+    private inspectNumber;
+    childProcessAlive: boolean;
+    private childProcess?;
     private promiseMap;
     proxyFn: T;
     constructor(scriptPath: string, arg: string[], inspectNumber: number);
+    initProcess(): ChildProcess;
     get pid(): number | undefined;
     private sendMessage;
     private receivedMessage;
+    log(...payloads: any[]): Promise<void>;
 }

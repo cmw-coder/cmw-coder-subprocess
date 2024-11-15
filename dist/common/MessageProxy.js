@@ -71,6 +71,9 @@ exports.MessageToMasterProxy = MessageToMasterProxy;
 class MessageToChildProxy {
     constructor(scriptPath, arg, inspectNumber) {
         this.scriptPath = scriptPath;
+        this.arg = arg;
+        this.inspectNumber = inspectNumber;
+        this.childProcessAlive = false;
         this.promiseMap = new Map();
         this.proxyFn = new Proxy({}, {
             get: (_, functionName) => (...payloads) => this.sendMessage({
@@ -78,22 +81,31 @@ class MessageToChildProxy {
                 data: payloads,
             }),
         });
-        this.childProcess = (0, child_process_1.fork)(this.scriptPath, arg, {
-            execArgv: [`--inspect=${inspectNumber}`],
+        this.childProcess = this.initProcess();
+    }
+    initProcess() {
+        const childProcess = (0, child_process_1.fork)(this.scriptPath, this.arg, {
+            execArgv: [`--inspect=${this.inspectNumber}`],
         });
-        console.log(`[${this.childProcess.pid}]  ${scriptPath}`);
-        this.childProcess.on('close', (code) => {
-            console.log(`[${this.childProcess.pid}]  exit with code ${code}`);
+        this.log(`[${childProcess.pid}]  ${this.scriptPath}`);
+        childProcess.on('close', (code) => {
+            this.log(`[${childProcess.pid}]  exit with code ${code}`);
+            this.childProcess = undefined;
         });
-        this.childProcess.on('message', this.receivedMessage.bind(this));
-        this.childProcess.on('error', (err) => {
-            console.error(`[${this.childProcess.pid}]  error`, err);
+        childProcess.on('message', this.receivedMessage.bind(this));
+        childProcess.on('error', (err) => {
+            this.log(`[${childProcess.pid}]  error`, err);
+            this.childProcess = undefined;
         });
+        return childProcess;
     }
     get pid() {
-        return this.childProcess.pid;
+        return this.childProcess?.pid;
     }
     sendMessage(message) {
+        if (!this.childProcess) {
+            this.childProcess = this.initProcess();
+        }
         const { id, key, data } = message;
         if (id) {
             // 主进程执行结果发送给子进程
@@ -139,6 +151,9 @@ class MessageToChildProxy {
                 this.promiseMap.delete(id);
             }
         }
+    }
+    async log(...payloads) {
+        console.log(...payloads);
     }
 }
 exports.MessageToChildProxy = MessageToChildProxy;
