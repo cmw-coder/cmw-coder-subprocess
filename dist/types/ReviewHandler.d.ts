@@ -1,10 +1,10 @@
-import { ExtraData, Feedback, Reference, ReviewData, ReviewFileItem, ReviewRequestParams, ReviewResult, ReviewState, Selection } from './review';
+import { ExtraData, Feedback, Reference, ReviewData, ReviewFileItem, ReviewRequestParams, ReviewResult, ReviewState, SelectionData } from './review';
 import { AppConfig } from './master';
 export interface ReviewMasterHandler {
     getConfig(): Promise<AppConfig>;
     getScriptDir(): Promise<string>;
     log(...payloads: any[]): Promise<void>;
-    getReferences(selection: Selection): Promise<Reference[]>;
+    getReferences(selectionData: SelectionData): Promise<Reference[]>;
     reviewDataUpdated(reviewId: string): Promise<void>;
     reviewFileListUpdated(): Promise<void>;
     api_code_review: (data: ReviewRequestParams) => Promise<string>;
@@ -21,7 +21,7 @@ export interface ReviewMasterHandler {
 }
 export interface ReviewChildHandler {
     addReview(data: {
-        selection: Selection;
+        selectionData: SelectionData;
         extraData: ExtraData;
     }): Promise<any>;
     reviewFile(data: {

@@ -8,17 +8,16 @@ export declare enum SymbolType {
     Unknown = "Unknown",
     Variable = "Variable"
 }
-type BundledLanguage = string;
 export interface ExtraData {
     projectId: string;
     version: string;
 }
-export interface Selection {
+export interface SelectionData {
     block: string;
     file: string;
     content: string;
     range: Range;
-    language: BundledLanguage;
+    language: string;
 }
 export interface Reference {
     name: string;
@@ -93,7 +92,7 @@ export interface ReviewResult {
 }
 export interface ReviewData {
     references: Reference[];
-    selection: Selection;
+    selectionData: SelectionData;
     reviewId: string;
     serverTaskId: string;
     state: ReviewState;
@@ -119,4 +118,3 @@ export interface ReviewFileItem {
     done: number;
     problemNumber: number;
 }
-export {};

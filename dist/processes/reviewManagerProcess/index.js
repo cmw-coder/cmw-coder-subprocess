@@ -35,7 +35,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
     async getReviewFileList() {
         const resultMap = new Map();
         for (const review of this.activeReviewList) {
-            const filePath = review.selection.file;
+            const filePath = review.selectionData.file;
             let file = resultMap.get(filePath);
             let problemNumber = 0;
             if (review.state === review_1.ReviewState.Finished && review.result?.parsed) {
@@ -68,7 +68,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
     async getFileReviewList(filePath) {
         const reviewDataList = [];
         for (const review of this.activeReviewList) {
-            if (review.selection.file === filePath) {
+            if (review.selectionData.file === filePath) {
                 reviewDataList.push(review.getReviewData());
             }
         }
@@ -133,7 +133,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
                 const functionDefinition = functionDefinitions[i];
                 try {
                     await this.addReview({
-                        selection: functionDefinition,
+                        selectionData: functionDefinition,
                         extraData: {
                             projectId: extraData.projectId,
                             version: extraData.version,
@@ -152,7 +152,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
     }
     async addReview(data) {
         this.isClearAll = false;
-        const review = new ReviewInstance_1.ReviewInstance(data.selection, data.extraData, this.proxyFn, this.localReviewHistoryManager);
+        const review = new ReviewInstance_1.ReviewInstance(data.selectionData, data.extraData, this.proxyFn, this.localReviewHistoryManager);
         this.activeReviewList.push(review);
         review.onStart = () => {
             this.proxyFn.reviewDataUpdated(review.reviewId);
@@ -195,8 +195,8 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
     }
     async delReviewByFile(filePath) {
         this.proxyFn.log(`del review by file: ${filePath}`).catch();
-        const fileReviewList = this.activeReviewList.filter((review) => review.selection.file === filePath);
-        this.activeReviewList = this.activeReviewList.filter((review) => review.selection.file !== filePath);
+        const fileReviewList = this.activeReviewList.filter((review) => review.selectionData.file === filePath);
+        this.activeReviewList = this.activeReviewList.filter((review) => review.selectionData.file !== filePath);
         for (let i = 0; i < fileReviewList.length; i++) {
             const review = fileReviewList[i];
             if (review.isRunning) {

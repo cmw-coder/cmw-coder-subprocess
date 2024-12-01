@@ -6,7 +6,7 @@ const luxon_1 = require("luxon");
 const uuid_1 = require("uuid");
 const REFRESH_TIME = 3000;
 class ReviewInstance {
-    constructor(selection, extraData, proxyFn, localReviewHistoryManager) {
+    constructor(selectionData, extraData, proxyFn, localReviewHistoryManager) {
         this.extraData = extraData;
         this.proxyFn = proxyFn;
         this.localReviewHistoryManager = localReviewHistoryManager;
@@ -29,7 +29,7 @@ class ReviewInstance {
         this.onStart = () => { };
         this.onUpdate = () => { };
         this.onEnd = () => { };
-        this.selection = selection;
+        this.selectionData = selectionData;
     }
     async start() {
         this.isRunning = true;
@@ -37,7 +37,7 @@ class ReviewInstance {
         this.startTime = luxon_1.DateTime.now().valueOf() / 1000;
         this.onUpdate();
         const appConfig = await this.proxyFn.getConfig();
-        this.references = await this.proxyFn.getReferences(this.selection);
+        this.references = await this.proxyFn.getReferences(this.selectionData);
         this.state = review_1.ReviewState.References;
         this.referenceTime = luxon_1.DateTime.now().valueOf() / 1000;
         this.onUpdate();
@@ -49,9 +49,9 @@ class ReviewInstance {
                 references: this.references,
                 target: {
                     block: '',
-                    snippet: this.selection.content,
+                    snippet: this.selectionData.content,
                 },
-                language: this.selection.language,
+                language: this.selectionData.language,
             });
             this.state = review_1.ReviewState.Start;
             this.onUpdate();
@@ -120,20 +120,21 @@ class ReviewInstance {
     }
     getReviewData() {
         return {
+            references: this.references,
+            selectionData: this.selectionData,
             reviewId: this.reviewId,
             serverTaskId: this.serverTaskId,
             state: this.state,
-            result: this.result,
-            references: this.references,
-            selection: this.selection,
+            result: this.result ?? { parsed: false, data: [], originData: '' },
             feedback: this.feedback,
             errorInfo: this.errorInfo,
             extraData: this.extraData,
+            reviewType: review_1.ReviewType.Function,
+            isRunning: this.isRunning,
             createTime: this.createTime,
             startTime: this.startTime,
             endTime: this.endTime,
             referenceTime: this.referenceTime,
-            isRunning: this.isRunning,
         };
     }
     async stop() {

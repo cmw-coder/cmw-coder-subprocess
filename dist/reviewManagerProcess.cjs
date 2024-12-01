@@ -41,7 +41,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
     async getReviewFileList() {
         const resultMap = new Map();
         for (const review of this.activeReviewList) {
-            const filePath = review.selection.file;
+            const filePath = review.selectionData.file;
             let file = resultMap.get(filePath);
             let problemNumber = 0;
             if (review.state === review_1.ReviewState.Finished && review.result?.parsed) {
@@ -74,7 +74,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
     async getFileReviewList(filePath) {
         const reviewDataList = [];
         for (const review of this.activeReviewList) {
-            if (review.selection.file === filePath) {
+            if (review.selectionData.file === filePath) {
                 reviewDataList.push(review.getReviewData());
             }
         }
@@ -139,7 +139,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
                 const functionDefinition = functionDefinitions[i];
                 try {
                     await this.addReview({
-                        selection: functionDefinition,
+                        selectionData: functionDefinition,
                         extraData: {
                             projectId: extraData.projectId,
                             version: extraData.version,
@@ -158,7 +158,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
     }
     async addReview(data) {
         this.isClearAll = false;
-        const review = new ReviewInstance_1.ReviewInstance(data.selection, data.extraData, this.proxyFn, this.localReviewHistoryManager);
+        const review = new ReviewInstance_1.ReviewInstance(data.selectionData, data.extraData, this.proxyFn, this.localReviewHistoryManager);
         this.activeReviewList.push(review);
         review.onStart = () => {
             this.proxyFn.reviewDataUpdated(review.reviewId);
@@ -201,8 +201,8 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
     }
     async delReviewByFile(filePath) {
         this.proxyFn.log(`del review by file: ${filePath}`).catch();
-        const fileReviewList = this.activeReviewList.filter((review) => review.selection.file === filePath);
-        this.activeReviewList = this.activeReviewList.filter((review) => review.selection.file !== filePath);
+        const fileReviewList = this.activeReviewList.filter((review) => review.selectionData.file === filePath);
+        this.activeReviewList = this.activeReviewList.filter((review) => review.selectionData.file !== filePath);
         for (let i = 0; i < fileReviewList.length; i++) {
             const review = fileReviewList[i];
             if (review.isRunning) {
@@ -12706,7 +12706,7 @@ const luxon_1 = __webpack_require__(53);
 const uuid_1 = __webpack_require__(2);
 const REFRESH_TIME = 3000;
 class ReviewInstance {
-    constructor(selection, extraData, proxyFn, localReviewHistoryManager) {
+    constructor(selectionData, extraData, proxyFn, localReviewHistoryManager) {
         this.extraData = extraData;
         this.proxyFn = proxyFn;
         this.localReviewHistoryManager = localReviewHistoryManager;
@@ -12729,7 +12729,7 @@ class ReviewInstance {
         this.onStart = () => { };
         this.onUpdate = () => { };
         this.onEnd = () => { };
-        this.selection = selection;
+        this.selectionData = selectionData;
     }
     async start() {
         this.isRunning = true;
@@ -12737,7 +12737,7 @@ class ReviewInstance {
         this.startTime = luxon_1.DateTime.now().valueOf() / 1000;
         this.onUpdate();
         const appConfig = await this.proxyFn.getConfig();
-        this.references = await this.proxyFn.getReferences(this.selection);
+        this.references = await this.proxyFn.getReferences(this.selectionData);
         this.state = review_1.ReviewState.References;
         this.referenceTime = luxon_1.DateTime.now().valueOf() / 1000;
         this.onUpdate();
@@ -12749,9 +12749,9 @@ class ReviewInstance {
                 references: this.references,
                 target: {
                     block: '',
-                    snippet: this.selection.content,
+                    snippet: this.selectionData.content,
                 },
-                language: this.selection.language,
+                language: this.selectionData.language,
             });
             this.state = review_1.ReviewState.Start;
             this.onUpdate();
@@ -12820,20 +12820,21 @@ class ReviewInstance {
     }
     getReviewData() {
         return {
+            references: this.references,
+            selectionData: this.selectionData,
             reviewId: this.reviewId,
             serverTaskId: this.serverTaskId,
             state: this.state,
-            result: this.result,
-            references: this.references,
-            selection: this.selection,
+            result: this.result ?? { parsed: false, data: [], originData: '' },
             feedback: this.feedback,
             errorInfo: this.errorInfo,
             extraData: this.extraData,
+            reviewType: review_1.ReviewType.Function,
+            isRunning: this.isRunning,
             createTime: this.createTime,
             startTime: this.startTime,
             endTime: this.endTime,
             referenceTime: this.referenceTime,
-            isRunning: this.isRunning,
         };
     }
     async stop() {
