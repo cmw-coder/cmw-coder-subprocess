@@ -1,12 +1,12 @@
 import { SimilarSnippet } from './similarSnippets';
-import { Position } from './master';
+import { CaretPosition } from './common';
 export interface SimilarSnippetsMasterHandler {
     log(...data: any[]): Promise<void>;
 }
 export interface SimilarSnippetsHandler {
     getSimilarSnippets(data: {
         file: string;
-        position: Position;
+        position: CaretPosition;
         functionPrefix: string;
         functionSuffix: string;
         recentFiles: string[];

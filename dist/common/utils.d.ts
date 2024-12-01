@@ -1,4 +1,4 @@
-import { Position } from '../types/master';
+import { CaretPosition } from '../types/common';
 export declare const timeout: (time?: number) => Promise<unknown>;
 export declare function getFilesInDirectory(dir: string): Promise<string[]>;
 export declare const deleteComments: (content: string) => string;
@@ -7,10 +7,10 @@ export declare const getAllOtherTabContents: (filePathList: string[]) => Promise
     path: string;
     content: string;
 }[]>;
-export declare const getPositionOffset: (fileContent: string, position: Position) => number;
+export declare const getPositionOffset: (fileContent: string, caretPosition: CaretPosition) => number;
 export declare const getRemainedCodeContents: ({ file, position, functionPrefix, functionSuffix, }: {
     file: string;
-    position: Position;
+    position: CaretPosition;
     functionPrefix: string;
     functionSuffix: string;
 }) => Promise<{

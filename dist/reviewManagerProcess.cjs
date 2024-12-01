@@ -18,7 +18,7 @@ const review_1 = __webpack_require__(55);
 const fs_1 = __webpack_require__(29);
 const web_tree_sitter_1 = __importDefault(__webpack_require__(56));
 const iconv_lite_1 = __webpack_require__(57);
-const master_1 = __webpack_require__(82);
+const common_1 = __webpack_require__(82);
 const utils_1 = __webpack_require__(83);
 const path_1 = __importDefault(__webpack_require__(31));
 const MAX_RUNNING_REVIEW_COUNT = 10;
@@ -129,7 +129,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
                 block: fileContent.slice(captures[0].node.startIndex, captures[0].node.endIndex),
                 file: filePath,
                 content: fileContent.slice(captures[0].node.startIndex, captures[0].node.endIndex),
-                range: new master_1.Range(captures[0].node.startPosition.row, captures[0].node.startPosition.column, captures[0].node.endPosition.row, captures[0].node.endPosition.column),
+                range: new common_1.Selection(new common_1.CaretPosition(captures[0].node.startPosition.row, captures[0].node.startPosition.column), new common_1.CaretPosition(captures[0].node.endPosition.row, captures[0].node.endPosition.column)),
                 language: 'c',
             }));
             this.proxyFn
@@ -16072,7 +16072,7 @@ module.exports = require("stream");
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Range = exports.Position = exports.NetworkZone = void 0;
+exports.Selection = exports.CaretPosition = exports.NetworkZone = void 0;
 var NetworkZone;
 (function (NetworkZone) {
     // 红区
@@ -16084,47 +16084,53 @@ var NetworkZone;
     // 未知 -- 默认值
     NetworkZone["Unknown"] = "Unknown";
 })(NetworkZone || (exports.NetworkZone = NetworkZone = {}));
-class Position {
-    constructor(line, character) {
-        this.line = line;
+class CaretPosition {
+    constructor(line = -1, character = -1) {
         this.character = character;
+        this.line = line;
     }
-    /**
-     * Create a new position from this position.
-     *
-     * @param newLineNumber new line number
-     * @param newColumn new character
-     */
-    with(newLineNumber = this.line, newColumn = this.character) {
-        if (newLineNumber === this.line && newColumn === this.character) {
-            return this;
+    get isValid() {
+        return this.line >= 0 && this.character >= 0;
+    }
+    compareTo(other) {
+        if (this.line < other.line) {
+            return -1;
+        }
+        else if (this.line > other.line) {
+            return 1;
+        }
+        else if (this.character < other.character) {
+            return -1;
+        }
+        else if (this.character > other.character) {
+            return 1;
         }
         else {
-            return new Position(newLineNumber, newColumn);
-        }
-    }
-    /**
-     * Convert to a human-readable representation.
-     */
-    toString() {
-        return '(' + this.line + ',' + this.character + ')';
-    }
-}
-exports.Position = Position;
-class Range {
-    constructor(startLine, startCharacter, endLine, endCharacter) {
-        if (startLine > endLine ||
-            (startLine === endLine && startCharacter > endCharacter)) {
-            this.start = new Position(endLine, endCharacter);
-            this.end = new Position(startLine, startCharacter);
-        }
-        else {
-            this.start = new Position(startLine, startCharacter);
-            this.end = new Position(endLine, endCharacter);
+            return 0;
         }
     }
 }
-exports.Range = Range;
+exports.CaretPosition = CaretPosition;
+class Selection {
+    constructor(begin = new CaretPosition(), end = new CaretPosition()) {
+        this.begin = new CaretPosition();
+        this.end = new CaretPosition();
+        if (begin.isValid && end.isValid) {
+            if (begin.compareTo(end) > 0) {
+                this.begin = end;
+                this.end = begin;
+            }
+            else {
+                this.begin = begin;
+                this.end = end;
+            }
+        }
+    }
+    get isValid() {
+        return this.begin.isValid && this.end.isValid;
+    }
+}
+exports.Selection = Selection;
 
 
 /***/ }),
@@ -16142,8 +16148,8 @@ exports.getFilesInDirectory = getFilesInDirectory;
 exports.getTruncatedContents = getTruncatedContents;
 const fs_1 = __importDefault(__webpack_require__(29));
 const path_1 = __importDefault(__webpack_require__(31));
-const constants_1 = __webpack_require__(84);
 const iconv_lite_1 = __webpack_require__(57);
+const constants_1 = __webpack_require__(84);
 const timeout = (time = 0) => {
     return new Promise((resolve) => {
         setTimeout(resolve, time);
@@ -16197,9 +16203,9 @@ const getAllOtherTabContents = async (filePathList) => {
     return res;
 };
 exports.getAllOtherTabContents = getAllOtherTabContents;
-const getPositionOffset = (fileContent, position) => {
-    return (fileContent.split('\n').slice(0, position.line).join('\n').length +
-        position.character +
+const getPositionOffset = (fileContent, caretPosition) => {
+    return (fileContent.split('\n').slice(0, caretPosition.line).join('\n').length +
+        caretPosition.character +
         1);
 };
 exports.getPositionOffset = getPositionOffset;

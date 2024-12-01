@@ -8,8 +8,8 @@ exports.getFilesInDirectory = getFilesInDirectory;
 exports.getTruncatedContents = getTruncatedContents;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const constants_1 = require("./constants");
 const iconv_lite_1 = require("iconv-lite");
+const constants_1 = require("./constants");
 const timeout = (time = 0) => {
     return new Promise((resolve) => {
         setTimeout(resolve, time);
@@ -63,9 +63,9 @@ const getAllOtherTabContents = async (filePathList) => {
     return res;
 };
 exports.getAllOtherTabContents = getAllOtherTabContents;
-const getPositionOffset = (fileContent, position) => {
-    return (fileContent.split('\n').slice(0, position.line).join('\n').length +
-        position.character +
+const getPositionOffset = (fileContent, caretPosition) => {
+    return (fileContent.split('\n').slice(0, caretPosition.line).join('\n').length +
+        caretPosition.character +
         1);
 };
 exports.getPositionOffset = getPositionOffset;

@@ -1,4 +1,4 @@
-import { Range } from './master';
+import { Selection } from './common';
 export declare enum SymbolType {
     Enum = "Enum",
     Function = "Function",
@@ -16,7 +16,7 @@ export interface SelectionData {
     block: string;
     file: string;
     content: string;
-    range: Range;
+    range: Selection;
     language: string;
 }
 export interface Reference {

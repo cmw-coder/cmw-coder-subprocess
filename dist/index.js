@@ -21,7 +21,7 @@ __exportStar(require("./types/fileStructureAnalysis"), exports);
 __exportStar(require("./types/diff"), exports);
 __exportStar(require("./types/diffHandler"), exports);
 __exportStar(require("./types/argv"), exports);
-__exportStar(require("./types/master"), exports);
+__exportStar(require("./types/common"), exports);
 __exportStar(require("./common/MessageToReviewChildProxy"), exports);
 __exportStar(require("./common/MessageToSimilarSnippetsChildProxy"), exports);
 __exportStar(require("./common/MessageToFileStructureAnalysisChildProxy"), exports);

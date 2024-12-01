@@ -1,3 +1,4 @@
+import { AppConfig } from 'types/common';
 import {
   ExtraData,
   Feedback,
@@ -9,7 +10,6 @@ import {
   ReviewState,
   SelectionData,
 } from 'types/review';
-import { AppConfig } from 'types/master';
 
 export interface ReviewMasterHandler {
   getConfig(): Promise<AppConfig>;

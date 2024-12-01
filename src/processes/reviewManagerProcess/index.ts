@@ -1,10 +1,16 @@
-import { MessageToMasterProxy } from 'common/MessageProxy';
-import { ReviewChildHandler, ReviewMasterHandler } from 'types/ReviewHandler';
+import { promises } from 'fs';
+import { decode } from 'iconv-lite';
+import path from 'path';
+import Parser from 'web-tree-sitter';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { ReviewProcessArgv } from 'types/argv';
+
 import { LocalReviewHistoryManager } from 'common/LocalReviewHistoryManager';
+import { MessageToMasterProxy } from 'common/MessageProxy';
+import { getFilesInDirectory, timeout } from 'common/utils';
 import { ReviewInstance } from 'processes/reviewManagerProcess/ReviewInstance';
+import { ReviewProcessArgv } from 'types/argv';
+import { CaretPosition, Selection } from 'types/common';
 import {
   ExtraData,
   Feedback,
@@ -13,12 +19,7 @@ import {
   ReviewState,
   SelectionData,
 } from 'types/review';
-import { promises } from 'fs';
-import Parser from 'web-tree-sitter';
-import { decode } from 'iconv-lite';
-import { Range } from 'types/master';
-import { getFilesInDirectory, timeout } from 'common/utils';
-import path from 'path';
+import { ReviewChildHandler, ReviewMasterHandler } from 'types/ReviewHandler';
 
 const MAX_RUNNING_REVIEW_COUNT = 10;
 
@@ -172,11 +173,9 @@ class ReviewProcess
             captures[0].node.startIndex,
             captures[0].node.endIndex,
           ),
-          range: new Range(
-            captures[0].node.startPosition.row,
-            captures[0].node.startPosition.column,
-            captures[0].node.endPosition.row,
-            captures[0].node.endPosition.column,
+          range: new Selection(
+            new CaretPosition(captures[0].node.startPosition.row, captures[0].node.startPosition.column),
+            new CaretPosition(captures[0].node.endPosition.row, captures[0].node.endPosition.column)
           ),
           language: 'c',
         }),

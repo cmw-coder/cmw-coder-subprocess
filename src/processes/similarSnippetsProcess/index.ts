@@ -12,7 +12,7 @@ import {
   separateTextByLine,
   tokenize,
 } from 'common/utils';
-import { Position } from 'types/master';
+import { CaretPosition } from 'types/common';
 import { SimilarSnippet } from 'types/similarSnippets';
 import {
   SimilarSnippetsMasterHandler,
@@ -43,7 +43,7 @@ class SimilarSnippetsProcess
     recentFiles,
   }: {
     file: string;
-    position: Position;
+    position: CaretPosition;
     functionPrefix: string;
     functionSuffix: string;
     recentFiles: string[];

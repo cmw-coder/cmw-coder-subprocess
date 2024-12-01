@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import { NEW_LINE_REGEX, REGEXP_WORD } from 'common/constants';
 import { decode } from 'iconv-lite';
-import { Position } from 'types/master';
+
+import { NEW_LINE_REGEX, REGEXP_WORD } from 'common/constants';
+import { CaretPosition } from 'types/common';
 
 export const timeout = (time = 0) => {
   return new Promise((resolve) => {
@@ -68,10 +69,10 @@ export const getAllOtherTabContents = async (
   return res;
 };
 
-export const getPositionOffset = (fileContent: string, position: Position) => {
+export const getPositionOffset = (fileContent: string, caretPosition: CaretPosition) => {
   return (
-    fileContent.split('\n').slice(0, position.line).join('\n').length +
-    position.character +
+    fileContent.split('\n').slice(0, caretPosition.line).join('\n').length +
+    caretPosition.character +
     1
   );
 };
@@ -83,7 +84,7 @@ export const getRemainedCodeContents = async ({
   functionSuffix,
 }: {
   file: string;
-  position: Position;
+  position: CaretPosition;
   functionPrefix: string;
   functionSuffix: string;
 }): Promise<{

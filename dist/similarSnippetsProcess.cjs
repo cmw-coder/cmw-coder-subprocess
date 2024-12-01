@@ -4128,8 +4128,8 @@ exports.getFilesInDirectory = getFilesInDirectory;
 exports.getTruncatedContents = getTruncatedContents;
 const fs_1 = __importDefault(__webpack_require__(29));
 const path_1 = __importDefault(__webpack_require__(31));
-const constants_1 = __webpack_require__(84);
 const iconv_lite_1 = __webpack_require__(57);
+const constants_1 = __webpack_require__(84);
 const timeout = (time = 0) => {
     return new Promise((resolve) => {
         setTimeout(resolve, time);
@@ -4183,9 +4183,9 @@ const getAllOtherTabContents = async (filePathList) => {
     return res;
 };
 exports.getAllOtherTabContents = getAllOtherTabContents;
-const getPositionOffset = (fileContent, position) => {
-    return (fileContent.split('\n').slice(0, position.line).join('\n').length +
-        position.character +
+const getPositionOffset = (fileContent, caretPosition) => {
+    return (fileContent.split('\n').slice(0, caretPosition.line).join('\n').length +
+        caretPosition.character +
         1);
 };
 exports.getPositionOffset = getPositionOffset;

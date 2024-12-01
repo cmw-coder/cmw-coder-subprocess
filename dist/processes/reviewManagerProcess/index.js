@@ -12,7 +12,7 @@ const review_1 = require("../../types/review");
 const fs_1 = require("fs");
 const web_tree_sitter_1 = __importDefault(require("web-tree-sitter"));
 const iconv_lite_1 = require("iconv-lite");
-const master_1 = require("../../types/master");
+const common_1 = require("../../types/common");
 const utils_1 = require("../../common/utils");
 const path_1 = __importDefault(require("path"));
 const MAX_RUNNING_REVIEW_COUNT = 10;
@@ -123,7 +123,7 @@ class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
                 block: fileContent.slice(captures[0].node.startIndex, captures[0].node.endIndex),
                 file: filePath,
                 content: fileContent.slice(captures[0].node.startIndex, captures[0].node.endIndex),
-                range: new master_1.Range(captures[0].node.startPosition.row, captures[0].node.startPosition.column, captures[0].node.endPosition.row, captures[0].node.endPosition.column),
+                range: new common_1.Selection(new common_1.CaretPosition(captures[0].node.startPosition.row, captures[0].node.startPosition.column), new common_1.CaretPosition(captures[0].node.endPosition.row, captures[0].node.endPosition.column)),
                 language: 'c',
             }));
             this.proxyFn

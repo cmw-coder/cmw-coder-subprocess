@@ -1,4 +1,4 @@
-import { Range } from 'types/master';
+import { Selection } from 'types/common';
 
 export enum SymbolType {
   Enum = 'Enum',
@@ -19,7 +19,7 @@ export interface SelectionData {
   block: string;
   file: string;
   content: string;
-  range: Range;
+  range: Selection;
   language: string;
 }
 
