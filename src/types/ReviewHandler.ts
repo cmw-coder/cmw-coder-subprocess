@@ -7,7 +7,7 @@ import {
   ReviewRequestParams,
   ReviewResult,
   ReviewState,
-  Selection,
+  SelectionData,
 } from 'types/review';
 import { AppConfig } from 'types/master';
 
@@ -15,7 +15,7 @@ export interface ReviewMasterHandler {
   getConfig(): Promise<AppConfig>;
   getScriptDir(): Promise<string>;
   log(...payloads: any[]): Promise<void>;
-  getReferences(selection: Selection): Promise<Reference[]>;
+  getReferences(selectionData: SelectionData): Promise<Reference[]>;
   reviewDataUpdated(reviewId: string): Promise<void>;
   reviewFileListUpdated(): Promise<void>;
 
@@ -33,7 +33,7 @@ export interface ReviewMasterHandler {
 }
 
 export interface ReviewChildHandler {
-  addReview(data: { selection: Selection; extraData: ExtraData }): Promise<any>;
+  addReview(data: { selectionData: SelectionData; extraData: ExtraData }): Promise<any>;
   reviewFile(data: { filePath: string; extraData: ExtraData }): Promise<any>;
   reviewProject(data: {
     projectDirPath: string;

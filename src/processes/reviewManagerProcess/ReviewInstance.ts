@@ -1,6 +1,6 @@
 import {
   ExtraData,
-  Selection,
+  SelectionData,
   Feedback,
   Reference,
   ReviewData,
@@ -15,7 +15,7 @@ import { LocalReviewHistoryManager } from 'common/LocalReviewHistoryManager';
 const REFRESH_TIME = 3000;
 
 export class ReviewInstance {
-  selection: Selection;
+  selectionData: SelectionData;
   timer?: NodeJS.Timeout;
   reviewId = uuidv4();
   serverTaskId = '';
@@ -39,12 +39,12 @@ export class ReviewInstance {
   onEnd = () => {};
 
   constructor(
-    selection: Selection,
+    selectionData: SelectionData,
     private extraData: ExtraData,
     private proxyFn: ReviewMasterHandler,
     private localReviewHistoryManager: LocalReviewHistoryManager,
   ) {
-    this.selection = selection;
+    this.selectionData = selectionData;
   }
 
   async start() {
@@ -53,7 +53,7 @@ export class ReviewInstance {
     this.startTime = DateTime.now().valueOf() / 1000;
     this.onUpdate();
     const appConfig = await this.proxyFn.getConfig();
-    this.references = await this.proxyFn.getReferences(this.selection);
+    this.references = await this.proxyFn.getReferences(this.selectionData);
     this.state = ReviewState.References;
     this.referenceTime = DateTime.now().valueOf() / 1000;
     this.onUpdate();
@@ -65,9 +65,9 @@ export class ReviewInstance {
         references: this.references,
         target: {
           block: '',
-          snippet: this.selection.content,
+          snippet: this.selectionData.content,
         },
-        language: this.selection.language,
+        language: this.selectionData.language,
       });
       this.state = ReviewState.Start;
       this.onUpdate();
@@ -149,7 +149,7 @@ export class ReviewInstance {
       state: this.state,
       result: this.result,
       references: this.references,
-      selection: this.selection,
+      selection: this.selectionData,
       feedback: this.feedback,
       errorInfo: this.errorInfo,
       extraData: this.extraData,

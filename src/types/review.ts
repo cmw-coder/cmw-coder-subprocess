@@ -10,19 +10,17 @@ export enum SymbolType {
   Variable = 'Variable',
 }
 
-type BundledLanguage = string;
-
 export interface ExtraData {
   projectId: string;
   version: string;
 }
 
-export interface Selection {
+export interface SelectionData {
   block: string;
   file: string;
   content: string;
   range: Range;
-  language: BundledLanguage;
+  language: string;
 }
 
 export interface Reference {
@@ -147,7 +145,7 @@ export interface ReviewResult {
 
 export interface ReviewData {
   references: Reference[];
-  selection: Selection;
+  selection: SelectionData;
   reviewId: string;
   serverTaskId: string;
   state: ReviewState;

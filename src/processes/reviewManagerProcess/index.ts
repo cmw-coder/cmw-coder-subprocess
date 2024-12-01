@@ -11,7 +11,7 @@ import {
   ReviewData,
   ReviewFileItem,
   ReviewState,
-  Selection,
+  SelectionData,
 } from 'types/review';
 import { promises } from 'fs';
 import Parser from 'web-tree-sitter';
@@ -51,7 +51,7 @@ class ReviewProcess
     const resultMap: Map<string, ReviewFileItem> = new Map();
 
     for (const review of this.activeReviewList) {
-      const filePath = review.selection.file;
+      const filePath = review.selectionData.file;
       let file = resultMap.get(filePath);
       let problemNumber = 0;
 
@@ -92,7 +92,7 @@ class ReviewProcess
   async getFileReviewList(filePath: string) {
     const reviewDataList = [];
     for (const review of this.activeReviewList) {
-      if (review.selection.file === filePath) {
+      if (review.selectionData.file === filePath) {
         reviewDataList.push(review.getReviewData());
       }
     }
@@ -162,7 +162,7 @@ class ReviewProcess
       const tree = this.cppParser.parse(fileContent);
       const matches = functionDefinitionQuery.matches(tree.rootNode);
       const functionDefinitions = matches.map(
-        ({ captures }): Selection => ({
+        ({ captures }): SelectionData => ({
           block: fileContent.slice(
             captures[0].node.startIndex,
             captures[0].node.endIndex,
@@ -190,7 +190,7 @@ class ReviewProcess
         const functionDefinition = functionDefinitions[i];
         try {
           await this.addReview({
-            selection: functionDefinition,
+            selectionData: functionDefinition,
             extraData: {
               projectId: extraData.projectId,
               version: extraData.version,
@@ -206,10 +206,10 @@ class ReviewProcess
     }
   }
 
-  async addReview(data: { selection: Selection; extraData: ExtraData }) {
+  async addReview(data: { selectionData: SelectionData; extraData: ExtraData }) {
     this.isClearAll = false;
     const review = new ReviewInstance(
-      data.selection,
+      data.selectionData,
       data.extraData,
       this.proxyFn,
       this.localReviewHistoryManager,
@@ -270,10 +270,10 @@ class ReviewProcess
   async delReviewByFile(filePath: string): Promise<any> {
     this.proxyFn.log(`del review by file: ${filePath}`).catch();
     const fileReviewList = this.activeReviewList.filter(
-      (review) => review.selection.file === filePath,
+      (review) => review.selectionData.file === filePath,
     );
     this.activeReviewList = this.activeReviewList.filter(
-      (review) => review.selection.file !== filePath,
+      (review) => review.selectionData.file !== filePath,
     );
 
     for (let i = 0; i < fileReviewList.length; i++) {
