@@ -1,1185 +1,7 @@
 /******/ (() => { // webpackBootstrap
-/******/ 	var __webpack_modules__ = ([
-/* 0 */,
-/* 1 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/******/ 	var __webpack_modules__ = ({
 
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.MessageToChildProxy = exports.MessageToMasterProxy = void 0;
-const uuid_1 = __webpack_require__(2);
-const child_process_1 = __webpack_require__(24);
-// 在子进程实例化，用于接受主进程消息
-class MessageToMasterProxy {
-    constructor() {
-        this.promiseMap = new Map();
-        this.proxyFn = new Proxy({}, {
-            get: (_, functionName) => (...payloads) => this.sendMessage({
-                key: functionName,
-                data: payloads,
-            }),
-        });
-        process.on('message', this.receivedMessage.bind(this));
-    }
-    sendMessage(message) {
-        if (!process.send) {
-            throw new Error('process.send is not defined');
-        }
-        const { id, key, data } = message;
-        if (id) {
-            // 子进程执行结果发送给主进程
-            process.send({
-                id,
-                data,
-            });
-        }
-        else {
-            // 子进程发送消息给主进程执行
-            const _id = (0, uuid_1.v4)();
-            if (key) {
-                process.send({
-                    id: _id,
-                    key,
-                    data,
-                });
-                return new Promise((resolve) => {
-                    this.promiseMap.set(_id, resolve);
-                });
-            }
-        }
-    }
-    async receivedMessage(message) {
-        const { id, key, data } = message;
-        if (key && id) {
-            // 主进程 ---> 子进程执行 (data: 子进程执行参数)
-            // @ts-ignore
-            const fn = this[key];
-            if (typeof fn === 'function') {
-                const result = await fn.bind(this)(...data);
-                this.sendMessage({
-                    id,
-                    data: result,
-                });
-            }
-        }
-        if (!key && id) {
-            // 主进程 ---> 子进程  (data: 主进程执行结果)
-            const resolve = this.promiseMap.get(id);
-            if (resolve) {
-                resolve(data);
-                this.promiseMap.delete(id);
-            }
-        }
-    }
-}
-exports.MessageToMasterProxy = MessageToMasterProxy;
-// 在主进程实例化，用于接受子进程消息
-class MessageToChildProxy {
-    constructor(scriptPath, arg, inspectNumber) {
-        this.scriptPath = scriptPath;
-        this.arg = arg;
-        this.inspectNumber = inspectNumber;
-        this.childProcessAlive = false;
-        this.promiseMap = new Map();
-        this.proxyFn = new Proxy({}, {
-            get: (_, functionName) => (...payloads) => this.sendMessage({
-                key: functionName,
-                data: payloads,
-            }),
-        });
-        this.childProcess = this.initProcess();
-    }
-    initProcess() {
-        const childProcess = (0, child_process_1.fork)(this.scriptPath, this.arg, {
-            execArgv: [`--inspect=${this.inspectNumber}`],
-        });
-        this.log(`[${childProcess.pid}]  ${this.scriptPath}`);
-        childProcess.on('close', (code) => {
-            this.log(`[${childProcess.pid}]  exit with code ${code}`);
-            this.childProcess = undefined;
-        });
-        childProcess.on('message', this.receivedMessage.bind(this));
-        childProcess.on('error', (err) => {
-            this.log(`[${childProcess.pid}]  error`, err);
-            this.childProcess = undefined;
-        });
-        return childProcess;
-    }
-    get pid() {
-        return this.childProcess?.pid;
-    }
-    sendMessage(message) {
-        if (!this.childProcess) {
-            this.childProcess = this.initProcess();
-        }
-        const { id, key, data } = message;
-        if (id) {
-            // 主进程执行结果发送给子进程
-            this.childProcess.send({
-                id,
-                data,
-            });
-        }
-        else {
-            // 主进程发送消息给子进程执行
-            const _id = (0, uuid_1.v4)();
-            if (key) {
-                this.childProcess.send({
-                    id: _id,
-                    key,
-                    data,
-                });
-                return new Promise((resolve) => {
-                    this.promiseMap.set(_id, resolve);
-                });
-            }
-        }
-    }
-    async receivedMessage(message) {
-        const { id, key, data } = message;
-        if (key && id) {
-            // 子进程 ---> 主进程执行 (data: 主进程执行参数)
-            // @ts-ignore
-            const fn = this[key];
-            if (typeof fn === 'function') {
-                const result = await fn.bind(this)(...data);
-                this.sendMessage({
-                    id,
-                    data: result,
-                });
-            }
-        }
-        if (!key && id) {
-            // 子进程 ---> 主进程  (data: 子进程执行结果)
-            const resolve = this.promiseMap.get(id);
-            if (resolve) {
-                resolve(data);
-                this.promiseMap.delete(id);
-            }
-        }
-    }
-    async log(...payloads) {
-        console.log(...payloads);
-    }
-}
-exports.MessageToChildProxy = MessageToChildProxy;
-
-
-/***/ }),
-/* 2 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   MAX: () => (/* reexport safe */ _max_js__WEBPACK_IMPORTED_MODULE_0__["default"]),
-/* harmony export */   NIL: () => (/* reexport safe */ _nil_js__WEBPACK_IMPORTED_MODULE_1__["default"]),
-/* harmony export */   parse: () => (/* reexport safe */ _parse_js__WEBPACK_IMPORTED_MODULE_2__["default"]),
-/* harmony export */   stringify: () => (/* reexport safe */ _stringify_js__WEBPACK_IMPORTED_MODULE_3__["default"]),
-/* harmony export */   v1: () => (/* reexport safe */ _v1_js__WEBPACK_IMPORTED_MODULE_4__["default"]),
-/* harmony export */   v1ToV6: () => (/* reexport safe */ _v1ToV6_js__WEBPACK_IMPORTED_MODULE_5__["default"]),
-/* harmony export */   v3: () => (/* reexport safe */ _v3_js__WEBPACK_IMPORTED_MODULE_6__["default"]),
-/* harmony export */   v4: () => (/* reexport safe */ _v4_js__WEBPACK_IMPORTED_MODULE_7__["default"]),
-/* harmony export */   v5: () => (/* reexport safe */ _v5_js__WEBPACK_IMPORTED_MODULE_8__["default"]),
-/* harmony export */   v6: () => (/* reexport safe */ _v6_js__WEBPACK_IMPORTED_MODULE_9__["default"]),
-/* harmony export */   v6ToV1: () => (/* reexport safe */ _v6ToV1_js__WEBPACK_IMPORTED_MODULE_10__["default"]),
-/* harmony export */   v7: () => (/* reexport safe */ _v7_js__WEBPACK_IMPORTED_MODULE_11__["default"]),
-/* harmony export */   validate: () => (/* reexport safe */ _validate_js__WEBPACK_IMPORTED_MODULE_12__["default"]),
-/* harmony export */   version: () => (/* reexport safe */ _version_js__WEBPACK_IMPORTED_MODULE_13__["default"])
-/* harmony export */ });
-/* harmony import */ var _max_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
-/* harmony import */ var _nil_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
-/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8);
-/* harmony import */ var _v1_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(9);
-/* harmony import */ var _v1ToV6_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(12);
-/* harmony import */ var _v3_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(13);
-/* harmony import */ var _v4_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(16);
-/* harmony import */ var _v5_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(18);
-/* harmony import */ var _v6_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(20);
-/* harmony import */ var _v6ToV1_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(21);
-/* harmony import */ var _v7_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(22);
-/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(6);
-/* harmony import */ var _version_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(23);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/***/ }),
-/* 3 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ('ffffffff-ffff-ffff-ffff-ffffffffffff');
-
-/***/ }),
-/* 4 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ('00000000-0000-0000-0000-000000000000');
-
-/***/ }),
-/* 5 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
-
-function parse(uuid) {
-  if (!(0,_validate_js__WEBPACK_IMPORTED_MODULE_0__["default"])(uuid)) {
-    throw TypeError('Invalid UUID');
-  }
-  let v;
-  const arr = new Uint8Array(16);
-
-  // Parse ########-....-....-....-............
-  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
-  arr[1] = v >>> 16 & 0xff;
-  arr[2] = v >>> 8 & 0xff;
-  arr[3] = v & 0xff;
-
-  // Parse ........-####-....-....-............
-  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
-  arr[5] = v & 0xff;
-
-  // Parse ........-....-####-....-............
-  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
-  arr[7] = v & 0xff;
-
-  // Parse ........-....-....-####-............
-  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
-  arr[9] = v & 0xff;
-
-  // Parse ........-....-....-....-############
-  // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
-  arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
-  arr[11] = v / 0x100000000 & 0xff;
-  arr[12] = v >>> 24 & 0xff;
-  arr[13] = v >>> 16 & 0xff;
-  arr[14] = v >>> 8 & 0xff;
-  arr[15] = v & 0xff;
-  return arr;
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (parse);
-
-/***/ }),
-/* 6 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _regex_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
-
-function validate(uuid) {
-  return typeof uuid === 'string' && _regex_js__WEBPACK_IMPORTED_MODULE_0__["default"].test(uuid);
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (validate);
-
-/***/ }),
-/* 7 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (/^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/i);
-
-/***/ }),
-/* 8 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
-/* harmony export */   unsafeStringify: () => (/* binding */ unsafeStringify)
-/* harmony export */ });
-/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
-
-
-/**
- * Convert array of 16 byte values to UUID string format of the form:
- * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
- */
-const byteToHex = [];
-for (let i = 0; i < 256; ++i) {
-  byteToHex.push((i + 0x100).toString(16).slice(1));
-}
-function unsafeStringify(arr, offset = 0) {
-  // Note: Be careful editing this code!  It's been tuned for performance
-  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
-  //
-  // Note to future-self: No, you can't remove the `toLowerCase()` call.
-  // REF: https://github.com/uuidjs/uuid/pull/677#issuecomment-1757351351
-  return (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase();
-}
-function stringify(arr, offset = 0) {
-  const uuid = unsafeStringify(arr, offset);
-  // Consistency check for valid UUID.  If this throws, it's likely due to one
-  // of the following:
-  // - One or more input array values don't map to a hex octet (leading to
-  // "undefined" in the uuid)
-  // - Invalid input values for the RFC `version` or `variant` fields
-  if (!(0,_validate_js__WEBPACK_IMPORTED_MODULE_0__["default"])(uuid)) {
-    throw TypeError('Stringified UUID is invalid');
-  }
-  return uuid;
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (stringify);
-
-/***/ }),
-/* 9 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _rng_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
-
-
-
-// **`v1()` - Generate time-based UUID**
-//
-// Inspired by https://github.com/LiosK/UUID.js
-// and http://docs.python.org/library/uuid.html
-
-let _nodeId;
-let _clockseq;
-
-// Previous uuid creation time
-let _lastMSecs = 0;
-let _lastNSecs = 0;
-
-// See https://github.com/uuidjs/uuid for API details
-function v1(options, buf, offset) {
-  let i = buf && offset || 0;
-  const b = buf || new Array(16);
-  options = options || {};
-  let node = options.node;
-  let clockseq = options.clockseq;
-
-  // v1 only: Use cached `node` and `clockseq` values
-  if (!options._v6) {
-    if (!node) {
-      node = _nodeId;
-    }
-    if (clockseq == null) {
-      clockseq = _clockseq;
-    }
-  }
-
-  // Handle cases where we need entropy.  We do this lazily to minimize issues
-  // related to insufficient system entropy.  See #189
-  if (node == null || clockseq == null) {
-    const seedBytes = options.random || (options.rng || _rng_js__WEBPACK_IMPORTED_MODULE_0__["default"])();
-
-    // Randomize node
-    if (node == null) {
-      node = [seedBytes[0], seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
-
-      // v1 only: cache node value for reuse
-      if (!_nodeId && !options._v6) {
-        // per RFC4122 4.5: Set MAC multicast bit (v1 only)
-        node[0] |= 0x01; // Set multicast bit
-
-        _nodeId = node;
-      }
-    }
-
-    // Randomize clockseq
-    if (clockseq == null) {
-      // Per 4.2.2, randomize (14 bit) clockseq
-      clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
-      if (_clockseq === undefined && !options._v6) {
-        _clockseq = clockseq;
-      }
-    }
-  }
-
-  // v1 & v6 timestamps are 100 nano-second units since the Gregorian epoch,
-  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so time is
-  // handled internally as 'msecs' (integer milliseconds) and 'nsecs'
-  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
-  let msecs = options.msecs !== undefined ? options.msecs : Date.now();
-
-  // Per 4.2.1.2, use count of uuid's generated during the current clock
-  // cycle to simulate higher resolution clock
-  let nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
-
-  // Time since last uuid creation (in msecs)
-  const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000;
-
-  // Per 4.2.1.2, Bump clockseq on clock regression
-  if (dt < 0 && options.clockseq === undefined) {
-    clockseq = clockseq + 1 & 0x3fff;
-  }
-
-  // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
-  // time interval
-  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
-    nsecs = 0;
-  }
-
-  // Per 4.2.1.2 Throw error if too many uuids are requested
-  if (nsecs >= 10000) {
-    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
-  }
-  _lastMSecs = msecs;
-  _lastNSecs = nsecs;
-  _clockseq = clockseq;
-
-  // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
-  msecs += 12219292800000;
-
-  // `time_low`
-  const tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
-  b[i++] = tl >>> 24 & 0xff;
-  b[i++] = tl >>> 16 & 0xff;
-  b[i++] = tl >>> 8 & 0xff;
-  b[i++] = tl & 0xff;
-
-  // `time_mid`
-  const tmh = msecs / 0x100000000 * 10000 & 0xfffffff;
-  b[i++] = tmh >>> 8 & 0xff;
-  b[i++] = tmh & 0xff;
-
-  // `time_high_and_version`
-  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
-  b[i++] = tmh >>> 16 & 0xff;
-
-  // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
-  b[i++] = clockseq >>> 8 | 0x80;
-
-  // `clock_seq_low`
-  b[i++] = clockseq & 0xff;
-
-  // `node`
-  for (let n = 0; n < 6; ++n) {
-    b[i + n] = node[n];
-  }
-  return buf || (0,_stringify_js__WEBPACK_IMPORTED_MODULE_1__.unsafeStringify)(b);
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (v1);
-
-/***/ }),
-/* 10 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ rng)
-/* harmony export */ });
-/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(11);
-/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_crypto__WEBPACK_IMPORTED_MODULE_0__);
-
-const rnds8Pool = new Uint8Array(256); // # of random values to pre-allocate
-let poolPtr = rnds8Pool.length;
-function rng() {
-  if (poolPtr > rnds8Pool.length - 16) {
-    node_crypto__WEBPACK_IMPORTED_MODULE_0___default().randomFillSync(rnds8Pool);
-    poolPtr = 0;
-  }
-  return rnds8Pool.slice(poolPtr, poolPtr += 16);
-}
-
-/***/ }),
-/* 11 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("node:crypto");
-
-/***/ }),
-/* 12 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ v1ToV6)
-/* harmony export */ });
-/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5);
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
-
-
-
-/**
- * Convert a v1 UUID to a v6 UUID
- *
- * @param {string|Uint8Array} uuid - The v1 UUID to convert to v6
- * @returns {string|Uint8Array} The v6 UUID as the same type as the `uuid` arg
- * (string or Uint8Array)
- */
-function v1ToV6(uuid) {
-  const v1Bytes = typeof uuid === 'string' ? (0,_parse_js__WEBPACK_IMPORTED_MODULE_0__["default"])(uuid) : uuid;
-  const v6Bytes = _v1ToV6(v1Bytes);
-  return typeof uuid === 'string' ? (0,_stringify_js__WEBPACK_IMPORTED_MODULE_1__.unsafeStringify)(v6Bytes) : v6Bytes;
-}
-
-// Do the field transformation needed for v1 -> v6
-function _v1ToV6(v1Bytes, randomize = false) {
-  return Uint8Array.of((v1Bytes[6] & 0x0f) << 4 | v1Bytes[7] >> 4 & 0x0f, (v1Bytes[7] & 0x0f) << 4 | (v1Bytes[4] & 0xf0) >> 4, (v1Bytes[4] & 0x0f) << 4 | (v1Bytes[5] & 0xf0) >> 4, (v1Bytes[5] & 0x0f) << 4 | (v1Bytes[0] & 0xf0) >> 4, (v1Bytes[0] & 0x0f) << 4 | (v1Bytes[1] & 0xf0) >> 4, (v1Bytes[1] & 0x0f) << 4 | (v1Bytes[2] & 0xf0) >> 4, 0x60 | v1Bytes[2] & 0x0f, v1Bytes[3], v1Bytes[8], v1Bytes[9], v1Bytes[10], v1Bytes[11], v1Bytes[12], v1Bytes[13], v1Bytes[14], v1Bytes[15]);
-}
-
-/***/ }),
-/* 13 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _v35_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(14);
-/* harmony import */ var _md5_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(15);
-
-
-const v3 = (0,_v35_js__WEBPACK_IMPORTED_MODULE_0__["default"])('v3', 0x30, _md5_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (v3);
-
-/***/ }),
-/* 14 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   DNS: () => (/* binding */ DNS),
-/* harmony export */   URL: () => (/* binding */ URL),
-/* harmony export */   "default": () => (/* binding */ v35)
-/* harmony export */ });
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
-/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5);
-
-
-function stringToBytes(str) {
-  str = unescape(encodeURIComponent(str)); // UTF8 escape
-
-  const bytes = [];
-  for (let i = 0; i < str.length; ++i) {
-    bytes.push(str.charCodeAt(i));
-  }
-  return bytes;
-}
-const DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
-const URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
-function v35(name, version, hashfunc) {
-  function generateUUID(value, namespace, buf, offset) {
-    var _namespace;
-    if (typeof value === 'string') {
-      value = stringToBytes(value);
-    }
-    if (typeof namespace === 'string') {
-      namespace = (0,_parse_js__WEBPACK_IMPORTED_MODULE_0__["default"])(namespace);
-    }
-    if (((_namespace = namespace) === null || _namespace === void 0 ? void 0 : _namespace.length) !== 16) {
-      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
-    }
-
-    // Compute hash of namespace and value, Per 4.3
-    // Future: Use spread syntax when supported on all platforms, e.g. `bytes =
-    // hashfunc([...namespace, ... value])`
-    let bytes = new Uint8Array(16 + value.length);
-    bytes.set(namespace);
-    bytes.set(value, namespace.length);
-    bytes = hashfunc(bytes);
-    bytes[6] = bytes[6] & 0x0f | version;
-    bytes[8] = bytes[8] & 0x3f | 0x80;
-    if (buf) {
-      offset = offset || 0;
-      for (let i = 0; i < 16; ++i) {
-        buf[offset + i] = bytes[i];
-      }
-      return buf;
-    }
-    return (0,_stringify_js__WEBPACK_IMPORTED_MODULE_1__.unsafeStringify)(bytes);
-  }
-
-  // Function#name is not settable on some platforms (#270)
-  try {
-    generateUUID.name = name;
-  } catch (err) {}
-
-  // For CommonJS default export support
-  generateUUID.DNS = DNS;
-  generateUUID.URL = URL;
-  return generateUUID;
-}
-
-/***/ }),
-/* 15 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(11);
-/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_crypto__WEBPACK_IMPORTED_MODULE_0__);
-
-function md5(bytes) {
-  if (Array.isArray(bytes)) {
-    bytes = Buffer.from(bytes);
-  } else if (typeof bytes === 'string') {
-    bytes = Buffer.from(bytes, 'utf8');
-  }
-  return node_crypto__WEBPACK_IMPORTED_MODULE_0___default().createHash('md5').update(bytes).digest();
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (md5);
-
-/***/ }),
-/* 16 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _native_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(17);
-/* harmony import */ var _rng_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8);
-
-
-
-function v4(options, buf, offset) {
-  if (_native_js__WEBPACK_IMPORTED_MODULE_0__["default"].randomUUID && !buf && !options) {
-    return _native_js__WEBPACK_IMPORTED_MODULE_0__["default"].randomUUID();
-  }
-  options = options || {};
-  const rnds = options.random || (options.rng || _rng_js__WEBPACK_IMPORTED_MODULE_1__["default"])();
-
-  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-  rnds[6] = rnds[6] & 0x0f | 0x40;
-  rnds[8] = rnds[8] & 0x3f | 0x80;
-
-  // Copy bytes to buffer, if provided
-  if (buf) {
-    offset = offset || 0;
-    for (let i = 0; i < 16; ++i) {
-      buf[offset + i] = rnds[i];
-    }
-    return buf;
-  }
-  return (0,_stringify_js__WEBPACK_IMPORTED_MODULE_2__.unsafeStringify)(rnds);
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (v4);
-
-/***/ }),
-/* 17 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(11);
-/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_crypto__WEBPACK_IMPORTED_MODULE_0__);
-
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
-  randomUUID: (node_crypto__WEBPACK_IMPORTED_MODULE_0___default().randomUUID)
-});
-
-/***/ }),
-/* 18 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _v35_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(14);
-/* harmony import */ var _sha1_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(19);
-
-
-const v5 = (0,_v35_js__WEBPACK_IMPORTED_MODULE_0__["default"])('v5', 0x50, _sha1_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (v5);
-
-/***/ }),
-/* 19 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(11);
-/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_crypto__WEBPACK_IMPORTED_MODULE_0__);
-
-function sha1(bytes) {
-  if (Array.isArray(bytes)) {
-    bytes = Buffer.from(bytes);
-  } else if (typeof bytes === 'string') {
-    bytes = Buffer.from(bytes, 'utf8');
-  }
-  return node_crypto__WEBPACK_IMPORTED_MODULE_0___default().createHash('sha1').update(bytes).digest();
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (sha1);
-
-/***/ }),
-/* 20 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ v6)
-/* harmony export */ });
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8);
-/* harmony import */ var _v1_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
-/* harmony import */ var _v1ToV6_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(12);
-
-
-
-
-/**
- *
- * @param {object} options
- * @param {Uint8Array=} buf
- * @param {number=} offset
- * @returns
- */
-function v6(options = {}, buf, offset = 0) {
-  // v6 is v1 with different field layout, so we start with a v1 UUID, albeit
-  // with slightly different behavior around how the clock_seq and node fields
-  // are randomized, which is why we call v1 with _v6: true.
-  let bytes = (0,_v1_js__WEBPACK_IMPORTED_MODULE_0__["default"])({
-    ...options,
-    _v6: true
-  }, new Uint8Array(16));
-
-  // Reorder the fields to v6 layout.
-  bytes = (0,_v1ToV6_js__WEBPACK_IMPORTED_MODULE_1__["default"])(bytes);
-
-  // Return as a byte array if requested
-  if (buf) {
-    for (let i = 0; i < 16; i++) {
-      buf[offset + i] = bytes[i];
-    }
-    return buf;
-  }
-  return (0,_stringify_js__WEBPACK_IMPORTED_MODULE_2__.unsafeStringify)(bytes);
-}
-
-/***/ }),
-/* 21 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ v6ToV1)
-/* harmony export */ });
-/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5);
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
-
-
-
-/**
- * Convert a v6 UUID to a v1 UUID
- *
- * @param {string|Uint8Array} uuid - The v6 UUID to convert to v6
- * @returns {string|Uint8Array} The v1 UUID as the same type as the `uuid` arg
- * (string or Uint8Array)
- */
-function v6ToV1(uuid) {
-  const v6Bytes = typeof uuid === 'string' ? (0,_parse_js__WEBPACK_IMPORTED_MODULE_0__["default"])(uuid) : uuid;
-  const v1Bytes = _v6ToV1(v6Bytes);
-  return typeof uuid === 'string' ? (0,_stringify_js__WEBPACK_IMPORTED_MODULE_1__.unsafeStringify)(v1Bytes) : v1Bytes;
-}
-
-// Do the field transformation needed for v6 -> v1
-function _v6ToV1(v6Bytes) {
-  return Uint8Array.of((v6Bytes[3] & 0x0f) << 4 | v6Bytes[4] >> 4 & 0x0f, (v6Bytes[4] & 0x0f) << 4 | (v6Bytes[5] & 0xf0) >> 4, (v6Bytes[5] & 0x0f) << 4 | v6Bytes[6] & 0x0f, v6Bytes[7], (v6Bytes[1] & 0x0f) << 4 | (v6Bytes[2] & 0xf0) >> 4, (v6Bytes[2] & 0x0f) << 4 | (v6Bytes[3] & 0xf0) >> 4, 0x10 | (v6Bytes[0] & 0xf0) >> 4, (v6Bytes[0] & 0x0f) << 4 | (v6Bytes[1] & 0xf0) >> 4, v6Bytes[8], v6Bytes[9], v6Bytes[10], v6Bytes[11], v6Bytes[12], v6Bytes[13], v6Bytes[14], v6Bytes[15]);
-}
-
-/***/ }),
-/* 22 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _rng_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
-/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
-
-
-
-/**
- * UUID V7 - Unix Epoch time-based UUID
- *
- * The IETF has published RFC9562, introducing 3 new UUID versions (6,7,8). This
- * implementation of V7 is based on the accepted, though not yet approved,
- * revisions.
- *
- * RFC 9562:https://www.rfc-editor.org/rfc/rfc9562.html Universally Unique
- * IDentifiers (UUIDs)
-
- *
- * Sample V7 value:
- * https://www.rfc-editor.org/rfc/rfc9562.html#name-example-of-a-uuidv7-value
- *
- * Monotonic Bit Layout: RFC rfc9562.6.2 Method 1, Dedicated Counter Bits ref:
- *     https://www.rfc-editor.org/rfc/rfc9562.html#section-6.2-5.1
- *
- *   0                   1                   2                   3 0 1 2 3 4 5 6
- *   7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *  |                          unix_ts_ms                           |
- *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *  |          unix_ts_ms           |  ver  |        seq_hi         |
- *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *  |var|               seq_low               |        rand         |
- *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *  |                             rand                              |
- *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *
- * seq is a 31 bit serialized counter; comprised of 12 bit seq_hi and 19 bit
- * seq_low, and randomly initialized upon timestamp change. 31 bit counter size
- * was selected as any bitwise operations in node are done as _signed_ 32 bit
- * ints. we exclude the sign bit.
- */
-
-let _seqLow = null;
-let _seqHigh = null;
-let _msecs = 0;
-function v7(options, buf, offset) {
-  options = options || {};
-
-  // initialize buffer and pointer
-  let i = buf && offset || 0;
-  const b = buf || new Uint8Array(16);
-
-  // rnds is Uint8Array(16) filled with random bytes
-  const rnds = options.random || (options.rng || _rng_js__WEBPACK_IMPORTED_MODULE_0__["default"])();
-
-  // milliseconds since unix epoch, 1970-01-01 00:00
-  const msecs = options.msecs !== undefined ? options.msecs : Date.now();
-
-  // seq is user provided 31 bit counter
-  let seq = options.seq !== undefined ? options.seq : null;
-
-  // initialize local seq high/low parts
-  let seqHigh = _seqHigh;
-  let seqLow = _seqLow;
-
-  // check if clock has advanced and user has not provided msecs
-  if (msecs > _msecs && options.msecs === undefined) {
-    _msecs = msecs;
-
-    // unless user provided seq, reset seq parts
-    if (seq !== null) {
-      seqHigh = null;
-      seqLow = null;
-    }
-  }
-
-  // if we have a user provided seq
-  if (seq !== null) {
-    // trim provided seq to 31 bits of value, avoiding overflow
-    if (seq > 0x7fffffff) {
-      seq = 0x7fffffff;
-    }
-
-    // split provided seq into high/low parts
-    seqHigh = seq >>> 19 & 0xfff;
-    seqLow = seq & 0x7ffff;
-  }
-
-  // randomly initialize seq
-  if (seqHigh === null || seqLow === null) {
-    seqHigh = rnds[6] & 0x7f;
-    seqHigh = seqHigh << 8 | rnds[7];
-    seqLow = rnds[8] & 0x3f; // pad for var
-    seqLow = seqLow << 8 | rnds[9];
-    seqLow = seqLow << 5 | rnds[10] >>> 3;
-  }
-
-  // increment seq if within msecs window
-  if (msecs + 10000 > _msecs && seq === null) {
-    if (++seqLow > 0x7ffff) {
-      seqLow = 0;
-      if (++seqHigh > 0xfff) {
-        seqHigh = 0;
-
-        // increment internal _msecs. this allows us to continue incrementing
-        // while staying monotonic. Note, once we hit 10k milliseconds beyond system
-        // clock, we will reset breaking monotonicity (after (2^31)*10000 generations)
-        _msecs++;
-      }
-    }
-  } else {
-    // resetting; we have advanced more than
-    // 10k milliseconds beyond system clock
-    _msecs = msecs;
-  }
-  _seqHigh = seqHigh;
-  _seqLow = seqLow;
-
-  // [bytes 0-5] 48 bits of local timestamp
-  b[i++] = _msecs / 0x10000000000 & 0xff;
-  b[i++] = _msecs / 0x100000000 & 0xff;
-  b[i++] = _msecs / 0x1000000 & 0xff;
-  b[i++] = _msecs / 0x10000 & 0xff;
-  b[i++] = _msecs / 0x100 & 0xff;
-  b[i++] = _msecs & 0xff;
-
-  // [byte 6] - set 4 bits of version (7) with first 4 bits seq_hi
-  b[i++] = seqHigh >>> 4 & 0x0f | 0x70;
-
-  // [byte 7] remaining 8 bits of seq_hi
-  b[i++] = seqHigh & 0xff;
-
-  // [byte 8] - variant (2 bits), first 6 bits seq_low
-  b[i++] = seqLow >>> 13 & 0x3f | 0x80;
-
-  // [byte 9] 8 bits seq_low
-  b[i++] = seqLow >>> 5 & 0xff;
-
-  // [byte 10] remaining 5 bits seq_low, 3 bits random
-  b[i++] = seqLow << 3 & 0xff | rnds[10] & 0x07;
-
-  // [bytes 11-15] always random
-  b[i++] = rnds[11];
-  b[i++] = rnds[12];
-  b[i++] = rnds[13];
-  b[i++] = rnds[14];
-  b[i++] = rnds[15];
-  return buf || (0,_stringify_js__WEBPACK_IMPORTED_MODULE_1__.unsafeStringify)(b);
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (v7);
-
-/***/ }),
-/* 23 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
-
-function version(uuid) {
-  if (!(0,_validate_js__WEBPACK_IMPORTED_MODULE_0__["default"])(uuid)) {
-    throw TypeError('Invalid UUID');
-  }
-  return parseInt(uuid.slice(14, 15), 16);
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (version);
-
-/***/ }),
-/* 24 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("child_process");
-
-/***/ }),
-/* 25 */,
-/* 26 */,
-/* 27 */,
-/* 28 */,
-/* 29 */,
-/* 30 */,
-/* 31 */,
-/* 32 */,
-/* 33 */,
-/* 34 */,
-/* 35 */,
-/* 36 */,
-/* 37 */,
-/* 38 */,
-/* 39 */,
-/* 40 */,
-/* 41 */,
-/* 42 */,
-/* 43 */,
-/* 44 */,
-/* 45 */,
-/* 46 */,
-/* 47 */,
-/* 48 */,
-/* 49 */,
-/* 50 */,
-/* 51 */,
-/* 52 */,
-/* 53 */,
-/* 54 */,
-/* 55 */,
-/* 56 */,
-/* 57 */,
-/* 58 */,
-/* 59 */,
-/* 60 */,
-/* 61 */,
-/* 62 */,
-/* 63 */,
-/* 64 */,
-/* 65 */,
-/* 66 */,
-/* 67 */,
-/* 68 */,
-/* 69 */,
-/* 70 */,
-/* 71 */,
-/* 72 */,
-/* 73 */,
-/* 74 */,
-/* 75 */,
-/* 76 */,
-/* 77 */,
-/* 78 */,
-/* 79 */,
-/* 80 */,
-/* 81 */,
-/* 82 */,
-/* 83 */,
-/* 84 */,
-/* 85 */,
-/* 86 */,
-/* 87 */,
-/* 88 */,
-/* 89 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const MessageProxy_1 = __webpack_require__(1);
-const diff_match_patch_1 = __importDefault(__webpack_require__(90));
-// import { Differ } from 'diff-match-patch-wasm-node';
-class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
-    constructor() {
-        super();
-        this.dmp = new diff_match_patch_1.default();
-        // private wasmDmp = new Differ();
-        this.isRunning = false;
-        this.dmp.Diff_Timeout = 0;
-    }
-    async diffLine(text1, text2) {
-        if (this.isRunning) {
-            return undefined;
-        }
-        const result = {
-            added: 0,
-            deleted: 0,
-        };
-        try {
-            this.proxyFn.log('diffLine', {
-                text1Length: text1.length,
-                text2Length: text2.length,
-            }).catch();
-            this.isRunning = true;
-            const a = this.dmp.diff_linesToChars_(text1, text2);
-            const lineText1 = a.chars1;
-            const lineText2 = a.chars2;
-            const lineArray = a.lineArray;
-            const lineDiffs = this.dmp.diff_main(lineText1, lineText2);
-            this.dmp.diff_charsToLines_(lineDiffs, lineArray);
-            this.dmp.diff_cleanupSemantic(lineDiffs);
-            for (let i = 0; i < lineDiffs.length; i++) {
-                const lineDiff = lineDiffs[i];
-                if (lineDiff[0] === 1) {
-                    this.proxyFn.log('diffLine added', lineDiff).catch();
-                    const lines = lineDiff[1].split(/\r\n|\n/).filter(line => line.trim() !== '');
-                    result.added += lines.length;
-                }
-                if (lineDiff[0] === -1) {
-                    this.proxyFn.log('diffLine deleted', lineDiff).catch();
-                    const lines = lineDiff[1].split(/\r\n|\n/).filter(line => line.trim() !== '');
-                    result.deleted += lines.length;
-                }
-            }
-            return result;
-        }
-        catch (e) {
-            this.proxyFn.log('diffLine error', e.message || e).catch();
-            return result;
-        }
-        finally {
-            this.isRunning = false;
-        }
-    }
-    async diffChar(text1, text2) {
-        if (this.isRunning) {
-            return undefined;
-        }
-        const result = {
-            added: 0,
-            deleted: 0,
-        };
-        try {
-            this.isRunning = true;
-            const charDiffs = this.dmp.diff_main(text1, text2);
-            for (let i = 0; i < charDiffs.length; i++) {
-                const charDiff = charDiffs[i];
-                if (charDiff[0] === 1) {
-                    result.added += charDiff[1].replaceAll('\r\n', '\n').length;
-                }
-                if (charDiff[0] === -1) {
-                    result.deleted += charDiff[1].replaceAll('\r\n', '\n').length;
-                }
-            }
-            return result;
-        }
-        catch (e) {
-            this.proxyFn.log('diffChar error', e).catch();
-            return result;
-        }
-        finally {
-            this.isRunning = false;
-        }
-    }
-}
-new DiffProcess();
-
-
-/***/ }),
-/* 90 */
+/***/ 90:
 /***/ ((module) => {
 
 /**
@@ -3401,8 +2223,1148 @@ module.exports.DIFF_DELETE = DIFF_DELETE;
 module.exports.DIFF_INSERT = DIFF_INSERT;
 module.exports.DIFF_EQUAL = DIFF_EQUAL;
 
+/***/ }),
+
+/***/ 56:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MessageToChildProxy = exports.MessageToMasterProxy = void 0;
+const uuid_1 = __webpack_require__(57);
+const child_process_1 = __webpack_require__(79);
+// 在子进程实例化，用于接受主进程消息
+class MessageToMasterProxy {
+    constructor() {
+        this.promiseMap = new Map();
+        this.proxyFn = new Proxy({}, {
+            get: (_, functionName) => (...payloads) => this.sendMessage({
+                key: functionName,
+                data: payloads,
+            }),
+        });
+        process.on('message', this.receivedMessage.bind(this));
+    }
+    sendMessage(message) {
+        if (!process.send) {
+            throw new Error('process.send is not defined');
+        }
+        const { id, key, data } = message;
+        if (id) {
+            // 子进程执行结果发送给主进程
+            process.send({
+                id,
+                data,
+            });
+        }
+        else {
+            // 子进程发送消息给主进程执行
+            const _id = (0, uuid_1.v4)();
+            if (key) {
+                process.send({
+                    id: _id,
+                    key,
+                    data,
+                });
+                return new Promise((resolve) => {
+                    this.promiseMap.set(_id, resolve);
+                });
+            }
+        }
+    }
+    async receivedMessage(message) {
+        const { id, key, data } = message;
+        if (key && id) {
+            // 主进程 ---> 子进程执行 (data: 子进程执行参数)
+            // @ts-ignore
+            const fn = this[key];
+            if (typeof fn === 'function') {
+                const result = await fn.bind(this)(...data);
+                this.sendMessage({
+                    id,
+                    data: result,
+                });
+            }
+        }
+        if (!key && id) {
+            // 主进程 ---> 子进程  (data: 主进程执行结果)
+            const resolve = this.promiseMap.get(id);
+            if (resolve) {
+                resolve(data);
+                this.promiseMap.delete(id);
+            }
+        }
+    }
+}
+exports.MessageToMasterProxy = MessageToMasterProxy;
+// 在主进程实例化，用于接受子进程消息
+class MessageToChildProxy {
+    constructor(scriptPath, arg, inspectNumber) {
+        this.scriptPath = scriptPath;
+        this.arg = arg;
+        this.inspectNumber = inspectNumber;
+        this.childProcessAlive = false;
+        this.promiseMap = new Map();
+        this.proxyFn = new Proxy({}, {
+            get: (_, functionName) => (...payloads) => this.sendMessage({
+                key: functionName,
+                data: payloads,
+            }),
+        });
+        this.childProcess = this.initProcess();
+    }
+    initProcess() {
+        const childProcess = (0, child_process_1.fork)(this.scriptPath, this.arg, {
+            execArgv: [`--inspect=${this.inspectNumber}`],
+        });
+        this.log(`[${childProcess.pid}]  ${this.scriptPath}`);
+        childProcess.on('close', (code) => {
+            this.log(`[${childProcess.pid}]  exit with code ${code}`);
+            this.childProcess = undefined;
+        });
+        childProcess.on('message', this.receivedMessage.bind(this));
+        childProcess.on('error', (err) => {
+            this.log(`[${childProcess.pid}]  error`, err);
+            this.childProcess = undefined;
+        });
+        return childProcess;
+    }
+    get pid() {
+        return this.childProcess?.pid;
+    }
+    sendMessage(message) {
+        if (!this.childProcess) {
+            this.childProcess = this.initProcess();
+        }
+        const { id, key, data } = message;
+        if (id) {
+            // 主进程执行结果发送给子进程
+            this.childProcess.send({
+                id,
+                data,
+            });
+        }
+        else {
+            // 主进程发送消息给子进程执行
+            const _id = (0, uuid_1.v4)();
+            if (key) {
+                this.childProcess.send({
+                    id: _id,
+                    key,
+                    data,
+                });
+                return new Promise((resolve) => {
+                    this.promiseMap.set(_id, resolve);
+                });
+            }
+        }
+    }
+    async receivedMessage(message) {
+        const { id, key, data } = message;
+        if (key && id) {
+            // 子进程 ---> 主进程执行 (data: 主进程执行参数)
+            // @ts-ignore
+            const fn = this[key];
+            if (typeof fn === 'function') {
+                const result = await fn.bind(this)(...data);
+                this.sendMessage({
+                    id,
+                    data: result,
+                });
+            }
+        }
+        if (!key && id) {
+            // 子进程 ---> 主进程  (data: 子进程执行结果)
+            const resolve = this.promiseMap.get(id);
+            if (resolve) {
+                resolve(data);
+                this.promiseMap.delete(id);
+            }
+        }
+    }
+    async log(...payloads) {
+        console.log(...payloads);
+    }
+}
+exports.MessageToChildProxy = MessageToChildProxy;
+
+
+/***/ }),
+
+/***/ 89:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const MessageProxy_1 = __webpack_require__(56);
+const diff_match_patch_1 = __importDefault(__webpack_require__(90));
+// import { Differ } from 'diff-match-patch-wasm-node';
+class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
+    constructor() {
+        super();
+        this.dmp = new diff_match_patch_1.default();
+        // private wasmDmp = new Differ();
+        this.isRunning = false;
+        this.dmp.Diff_Timeout = 0;
+    }
+    async diffLine(text1, text2) {
+        if (this.isRunning) {
+            return undefined;
+        }
+        const result = {
+            added: 0,
+            deleted: 0,
+        };
+        try {
+            this.proxyFn.log('diffLine', {
+                text1Length: text1.length,
+                text2Length: text2.length,
+            }).catch();
+            this.isRunning = true;
+            const a = this.dmp.diff_linesToChars_(text1, text2);
+            const lineText1 = a.chars1;
+            const lineText2 = a.chars2;
+            const lineArray = a.lineArray;
+            const lineDiffs = this.dmp.diff_main(lineText1, lineText2);
+            this.dmp.diff_charsToLines_(lineDiffs, lineArray);
+            this.dmp.diff_cleanupSemantic(lineDiffs);
+            for (let i = 0; i < lineDiffs.length; i++) {
+                const lineDiff = lineDiffs[i];
+                if (lineDiff[0] === 1) {
+                    this.proxyFn.log('diffLine added', lineDiff).catch();
+                    const lines = lineDiff[1].split(/\r\n|\n/).filter(line => line.trim() !== '');
+                    result.added += lines.length;
+                }
+                if (lineDiff[0] === -1) {
+                    this.proxyFn.log('diffLine deleted', lineDiff).catch();
+                    const lines = lineDiff[1].split(/\r\n|\n/).filter(line => line.trim() !== '');
+                    result.deleted += lines.length;
+                }
+            }
+            return result;
+        }
+        catch (e) {
+            this.proxyFn.log('diffLine error', e.message || e).catch();
+            return result;
+        }
+        finally {
+            this.isRunning = false;
+        }
+    }
+    async diffChar(text1, text2) {
+        if (this.isRunning) {
+            return undefined;
+        }
+        const result = {
+            added: 0,
+            deleted: 0,
+        };
+        try {
+            this.isRunning = true;
+            const charDiffs = this.dmp.diff_main(text1, text2);
+            for (let i = 0; i < charDiffs.length; i++) {
+                const charDiff = charDiffs[i];
+                if (charDiff[0] === 1) {
+                    result.added += charDiff[1].replaceAll('\r\n', '\n').length;
+                }
+                if (charDiff[0] === -1) {
+                    result.deleted += charDiff[1].replaceAll('\r\n', '\n').length;
+                }
+            }
+            return result;
+        }
+        catch (e) {
+            this.proxyFn.log('diffChar error', e).catch();
+            return result;
+        }
+        finally {
+            this.isRunning = false;
+        }
+    }
+}
+new DiffProcess();
+
+
+/***/ }),
+
+/***/ 57:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   MAX: () => (/* reexport safe */ _max_js__WEBPACK_IMPORTED_MODULE_0__["default"]),
+/* harmony export */   NIL: () => (/* reexport safe */ _nil_js__WEBPACK_IMPORTED_MODULE_1__["default"]),
+/* harmony export */   parse: () => (/* reexport safe */ _parse_js__WEBPACK_IMPORTED_MODULE_2__["default"]),
+/* harmony export */   stringify: () => (/* reexport safe */ _stringify_js__WEBPACK_IMPORTED_MODULE_3__["default"]),
+/* harmony export */   v1: () => (/* reexport safe */ _v1_js__WEBPACK_IMPORTED_MODULE_4__["default"]),
+/* harmony export */   v1ToV6: () => (/* reexport safe */ _v1ToV6_js__WEBPACK_IMPORTED_MODULE_5__["default"]),
+/* harmony export */   v3: () => (/* reexport safe */ _v3_js__WEBPACK_IMPORTED_MODULE_6__["default"]),
+/* harmony export */   v4: () => (/* reexport safe */ _v4_js__WEBPACK_IMPORTED_MODULE_7__["default"]),
+/* harmony export */   v5: () => (/* reexport safe */ _v5_js__WEBPACK_IMPORTED_MODULE_8__["default"]),
+/* harmony export */   v6: () => (/* reexport safe */ _v6_js__WEBPACK_IMPORTED_MODULE_9__["default"]),
+/* harmony export */   v6ToV1: () => (/* reexport safe */ _v6ToV1_js__WEBPACK_IMPORTED_MODULE_10__["default"]),
+/* harmony export */   v7: () => (/* reexport safe */ _v7_js__WEBPACK_IMPORTED_MODULE_11__["default"]),
+/* harmony export */   validate: () => (/* reexport safe */ _validate_js__WEBPACK_IMPORTED_MODULE_12__["default"]),
+/* harmony export */   version: () => (/* reexport safe */ _version_js__WEBPACK_IMPORTED_MODULE_13__["default"])
+/* harmony export */ });
+/* harmony import */ var _max_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(58);
+/* harmony import */ var _nil_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(59);
+/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(60);
+/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(63);
+/* harmony import */ var _v1_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(64);
+/* harmony import */ var _v1ToV6_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(67);
+/* harmony import */ var _v3_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(68);
+/* harmony import */ var _v4_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(71);
+/* harmony import */ var _v5_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(73);
+/* harmony import */ var _v6_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(75);
+/* harmony import */ var _v6ToV1_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(76);
+/* harmony import */ var _v7_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(77);
+/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(61);
+/* harmony import */ var _version_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(78);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/***/ }),
+
+/***/ 58:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ('ffffffff-ffff-ffff-ffff-ffffffffffff');
+
+/***/ }),
+
+/***/ 70:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(66);
+/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_crypto__WEBPACK_IMPORTED_MODULE_0__);
+
+function md5(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+  return node_crypto__WEBPACK_IMPORTED_MODULE_0___default().createHash('md5').update(bytes).digest();
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (md5);
+
+/***/ }),
+
+/***/ 72:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(66);
+/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_crypto__WEBPACK_IMPORTED_MODULE_0__);
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+  randomUUID: (node_crypto__WEBPACK_IMPORTED_MODULE_0___default().randomUUID)
+});
+
+/***/ }),
+
+/***/ 59:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ('00000000-0000-0000-0000-000000000000');
+
+/***/ }),
+
+/***/ 60:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(61);
+
+function parse(uuid) {
+  if (!(0,_validate_js__WEBPACK_IMPORTED_MODULE_0__["default"])(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+  let v;
+  const arr = new Uint8Array(16);
+
+  // Parse ########-....-....-....-............
+  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
+  arr[1] = v >>> 16 & 0xff;
+  arr[2] = v >>> 8 & 0xff;
+  arr[3] = v & 0xff;
+
+  // Parse ........-####-....-....-............
+  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
+  arr[5] = v & 0xff;
+
+  // Parse ........-....-####-....-............
+  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
+  arr[7] = v & 0xff;
+
+  // Parse ........-....-....-####-............
+  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
+  arr[9] = v & 0xff;
+
+  // Parse ........-....-....-....-############
+  // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
+  arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
+  arr[11] = v / 0x100000000 & 0xff;
+  arr[12] = v >>> 24 & 0xff;
+  arr[13] = v >>> 16 & 0xff;
+  arr[14] = v >>> 8 & 0xff;
+  arr[15] = v & 0xff;
+  return arr;
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (parse);
+
+/***/ }),
+
+/***/ 62:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (/^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/i);
+
+/***/ }),
+
+/***/ 65:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ rng)
+/* harmony export */ });
+/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(66);
+/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_crypto__WEBPACK_IMPORTED_MODULE_0__);
+
+const rnds8Pool = new Uint8Array(256); // # of random values to pre-allocate
+let poolPtr = rnds8Pool.length;
+function rng() {
+  if (poolPtr > rnds8Pool.length - 16) {
+    node_crypto__WEBPACK_IMPORTED_MODULE_0___default().randomFillSync(rnds8Pool);
+    poolPtr = 0;
+  }
+  return rnds8Pool.slice(poolPtr, poolPtr += 16);
+}
+
+/***/ }),
+
+/***/ 74:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(66);
+/* harmony import */ var node_crypto__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_crypto__WEBPACK_IMPORTED_MODULE_0__);
+
+function sha1(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+  return node_crypto__WEBPACK_IMPORTED_MODULE_0___default().createHash('sha1').update(bytes).digest();
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (sha1);
+
+/***/ }),
+
+/***/ 63:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
+/* harmony export */   unsafeStringify: () => (/* binding */ unsafeStringify)
+/* harmony export */ });
+/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(61);
+
+
+/**
+ * Convert array of 16 byte values to UUID string format of the form:
+ * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+ */
+const byteToHex = [];
+for (let i = 0; i < 256; ++i) {
+  byteToHex.push((i + 0x100).toString(16).slice(1));
+}
+function unsafeStringify(arr, offset = 0) {
+  // Note: Be careful editing this code!  It's been tuned for performance
+  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
+  //
+  // Note to future-self: No, you can't remove the `toLowerCase()` call.
+  // REF: https://github.com/uuidjs/uuid/pull/677#issuecomment-1757351351
+  return (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase();
+}
+function stringify(arr, offset = 0) {
+  const uuid = unsafeStringify(arr, offset);
+  // Consistency check for valid UUID.  If this throws, it's likely due to one
+  // of the following:
+  // - One or more input array values don't map to a hex octet (leading to
+  // "undefined" in the uuid)
+  // - Invalid input values for the RFC `version` or `variant` fields
+  if (!(0,_validate_js__WEBPACK_IMPORTED_MODULE_0__["default"])(uuid)) {
+    throw TypeError('Stringified UUID is invalid');
+  }
+  return uuid;
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (stringify);
+
+/***/ }),
+
+/***/ 64:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _rng_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(65);
+/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(63);
+
+
+
+// **`v1()` - Generate time-based UUID**
+//
+// Inspired by https://github.com/LiosK/UUID.js
+// and http://docs.python.org/library/uuid.html
+
+let _nodeId;
+let _clockseq;
+
+// Previous uuid creation time
+let _lastMSecs = 0;
+let _lastNSecs = 0;
+
+// See https://github.com/uuidjs/uuid for API details
+function v1(options, buf, offset) {
+  let i = buf && offset || 0;
+  const b = buf || new Array(16);
+  options = options || {};
+  let node = options.node;
+  let clockseq = options.clockseq;
+
+  // v1 only: Use cached `node` and `clockseq` values
+  if (!options._v6) {
+    if (!node) {
+      node = _nodeId;
+    }
+    if (clockseq == null) {
+      clockseq = _clockseq;
+    }
+  }
+
+  // Handle cases where we need entropy.  We do this lazily to minimize issues
+  // related to insufficient system entropy.  See #189
+  if (node == null || clockseq == null) {
+    const seedBytes = options.random || (options.rng || _rng_js__WEBPACK_IMPORTED_MODULE_0__["default"])();
+
+    // Randomize node
+    if (node == null) {
+      node = [seedBytes[0], seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
+
+      // v1 only: cache node value for reuse
+      if (!_nodeId && !options._v6) {
+        // per RFC4122 4.5: Set MAC multicast bit (v1 only)
+        node[0] |= 0x01; // Set multicast bit
+
+        _nodeId = node;
+      }
+    }
+
+    // Randomize clockseq
+    if (clockseq == null) {
+      // Per 4.2.2, randomize (14 bit) clockseq
+      clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
+      if (_clockseq === undefined && !options._v6) {
+        _clockseq = clockseq;
+      }
+    }
+  }
+
+  // v1 & v6 timestamps are 100 nano-second units since the Gregorian epoch,
+  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so time is
+  // handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+  let msecs = options.msecs !== undefined ? options.msecs : Date.now();
+
+  // Per 4.2.1.2, use count of uuid's generated during the current clock
+  // cycle to simulate higher resolution clock
+  let nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1;
+
+  // Time since last uuid creation (in msecs)
+  const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000;
+
+  // Per 4.2.1.2, Bump clockseq on clock regression
+  if (dt < 0 && options.clockseq === undefined) {
+    clockseq = clockseq + 1 & 0x3fff;
+  }
+
+  // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+  // time interval
+  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+    nsecs = 0;
+  }
+
+  // Per 4.2.1.2 Throw error if too many uuids are requested
+  if (nsecs >= 10000) {
+    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
+  }
+  _lastMSecs = msecs;
+  _lastNSecs = nsecs;
+  _clockseq = clockseq;
+
+  // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+  msecs += 12219292800000;
+
+  // `time_low`
+  const tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+  b[i++] = tl >>> 24 & 0xff;
+  b[i++] = tl >>> 16 & 0xff;
+  b[i++] = tl >>> 8 & 0xff;
+  b[i++] = tl & 0xff;
+
+  // `time_mid`
+  const tmh = msecs / 0x100000000 * 10000 & 0xfffffff;
+  b[i++] = tmh >>> 8 & 0xff;
+  b[i++] = tmh & 0xff;
+
+  // `time_high_and_version`
+  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+  b[i++] = tmh >>> 16 & 0xff;
+
+  // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+  b[i++] = clockseq >>> 8 | 0x80;
+
+  // `clock_seq_low`
+  b[i++] = clockseq & 0xff;
+
+  // `node`
+  for (let n = 0; n < 6; ++n) {
+    b[i + n] = node[n];
+  }
+  return buf || (0,_stringify_js__WEBPACK_IMPORTED_MODULE_1__.unsafeStringify)(b);
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (v1);
+
+/***/ }),
+
+/***/ 67:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ v1ToV6)
+/* harmony export */ });
+/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(60);
+/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(63);
+
+
+
+/**
+ * Convert a v1 UUID to a v6 UUID
+ *
+ * @param {string|Uint8Array} uuid - The v1 UUID to convert to v6
+ * @returns {string|Uint8Array} The v6 UUID as the same type as the `uuid` arg
+ * (string or Uint8Array)
+ */
+function v1ToV6(uuid) {
+  const v1Bytes = typeof uuid === 'string' ? (0,_parse_js__WEBPACK_IMPORTED_MODULE_0__["default"])(uuid) : uuid;
+  const v6Bytes = _v1ToV6(v1Bytes);
+  return typeof uuid === 'string' ? (0,_stringify_js__WEBPACK_IMPORTED_MODULE_1__.unsafeStringify)(v6Bytes) : v6Bytes;
+}
+
+// Do the field transformation needed for v1 -> v6
+function _v1ToV6(v1Bytes, randomize = false) {
+  return Uint8Array.of((v1Bytes[6] & 0x0f) << 4 | v1Bytes[7] >> 4 & 0x0f, (v1Bytes[7] & 0x0f) << 4 | (v1Bytes[4] & 0xf0) >> 4, (v1Bytes[4] & 0x0f) << 4 | (v1Bytes[5] & 0xf0) >> 4, (v1Bytes[5] & 0x0f) << 4 | (v1Bytes[0] & 0xf0) >> 4, (v1Bytes[0] & 0x0f) << 4 | (v1Bytes[1] & 0xf0) >> 4, (v1Bytes[1] & 0x0f) << 4 | (v1Bytes[2] & 0xf0) >> 4, 0x60 | v1Bytes[2] & 0x0f, v1Bytes[3], v1Bytes[8], v1Bytes[9], v1Bytes[10], v1Bytes[11], v1Bytes[12], v1Bytes[13], v1Bytes[14], v1Bytes[15]);
+}
+
+/***/ }),
+
+/***/ 68:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _v35_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(69);
+/* harmony import */ var _md5_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(70);
+
+
+const v3 = (0,_v35_js__WEBPACK_IMPORTED_MODULE_0__["default"])('v3', 0x30, _md5_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (v3);
+
+/***/ }),
+
+/***/ 69:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DNS: () => (/* binding */ DNS),
+/* harmony export */   URL: () => (/* binding */ URL),
+/* harmony export */   "default": () => (/* binding */ v35)
+/* harmony export */ });
+/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(63);
+/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(60);
+
+
+function stringToBytes(str) {
+  str = unescape(encodeURIComponent(str)); // UTF8 escape
+
+  const bytes = [];
+  for (let i = 0; i < str.length; ++i) {
+    bytes.push(str.charCodeAt(i));
+  }
+  return bytes;
+}
+const DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+const URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
+function v35(name, version, hashfunc) {
+  function generateUUID(value, namespace, buf, offset) {
+    var _namespace;
+    if (typeof value === 'string') {
+      value = stringToBytes(value);
+    }
+    if (typeof namespace === 'string') {
+      namespace = (0,_parse_js__WEBPACK_IMPORTED_MODULE_0__["default"])(namespace);
+    }
+    if (((_namespace = namespace) === null || _namespace === void 0 ? void 0 : _namespace.length) !== 16) {
+      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
+    }
+
+    // Compute hash of namespace and value, Per 4.3
+    // Future: Use spread syntax when supported on all platforms, e.g. `bytes =
+    // hashfunc([...namespace, ... value])`
+    let bytes = new Uint8Array(16 + value.length);
+    bytes.set(namespace);
+    bytes.set(value, namespace.length);
+    bytes = hashfunc(bytes);
+    bytes[6] = bytes[6] & 0x0f | version;
+    bytes[8] = bytes[8] & 0x3f | 0x80;
+    if (buf) {
+      offset = offset || 0;
+      for (let i = 0; i < 16; ++i) {
+        buf[offset + i] = bytes[i];
+      }
+      return buf;
+    }
+    return (0,_stringify_js__WEBPACK_IMPORTED_MODULE_1__.unsafeStringify)(bytes);
+  }
+
+  // Function#name is not settable on some platforms (#270)
+  try {
+    generateUUID.name = name;
+  } catch (err) {}
+
+  // For CommonJS default export support
+  generateUUID.DNS = DNS;
+  generateUUID.URL = URL;
+  return generateUUID;
+}
+
+/***/ }),
+
+/***/ 71:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _native_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(72);
+/* harmony import */ var _rng_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(65);
+/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(63);
+
+
+
+function v4(options, buf, offset) {
+  if (_native_js__WEBPACK_IMPORTED_MODULE_0__["default"].randomUUID && !buf && !options) {
+    return _native_js__WEBPACK_IMPORTED_MODULE_0__["default"].randomUUID();
+  }
+  options = options || {};
+  const rnds = options.random || (options.rng || _rng_js__WEBPACK_IMPORTED_MODULE_1__["default"])();
+
+  // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+  rnds[6] = rnds[6] & 0x0f | 0x40;
+  rnds[8] = rnds[8] & 0x3f | 0x80;
+
+  // Copy bytes to buffer, if provided
+  if (buf) {
+    offset = offset || 0;
+    for (let i = 0; i < 16; ++i) {
+      buf[offset + i] = rnds[i];
+    }
+    return buf;
+  }
+  return (0,_stringify_js__WEBPACK_IMPORTED_MODULE_2__.unsafeStringify)(rnds);
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (v4);
+
+/***/ }),
+
+/***/ 73:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _v35_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(69);
+/* harmony import */ var _sha1_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(74);
+
+
+const v5 = (0,_v35_js__WEBPACK_IMPORTED_MODULE_0__["default"])('v5', 0x50, _sha1_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (v5);
+
+/***/ }),
+
+/***/ 75:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ v6)
+/* harmony export */ });
+/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(63);
+/* harmony import */ var _v1_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(64);
+/* harmony import */ var _v1ToV6_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(67);
+
+
+
+
+/**
+ *
+ * @param {object} options
+ * @param {Uint8Array=} buf
+ * @param {number=} offset
+ * @returns
+ */
+function v6(options = {}, buf, offset = 0) {
+  // v6 is v1 with different field layout, so we start with a v1 UUID, albeit
+  // with slightly different behavior around how the clock_seq and node fields
+  // are randomized, which is why we call v1 with _v6: true.
+  let bytes = (0,_v1_js__WEBPACK_IMPORTED_MODULE_0__["default"])({
+    ...options,
+    _v6: true
+  }, new Uint8Array(16));
+
+  // Reorder the fields to v6 layout.
+  bytes = (0,_v1ToV6_js__WEBPACK_IMPORTED_MODULE_1__["default"])(bytes);
+
+  // Return as a byte array if requested
+  if (buf) {
+    for (let i = 0; i < 16; i++) {
+      buf[offset + i] = bytes[i];
+    }
+    return buf;
+  }
+  return (0,_stringify_js__WEBPACK_IMPORTED_MODULE_2__.unsafeStringify)(bytes);
+}
+
+/***/ }),
+
+/***/ 76:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ v6ToV1)
+/* harmony export */ });
+/* harmony import */ var _parse_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(60);
+/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(63);
+
+
+
+/**
+ * Convert a v6 UUID to a v1 UUID
+ *
+ * @param {string|Uint8Array} uuid - The v6 UUID to convert to v6
+ * @returns {string|Uint8Array} The v1 UUID as the same type as the `uuid` arg
+ * (string or Uint8Array)
+ */
+function v6ToV1(uuid) {
+  const v6Bytes = typeof uuid === 'string' ? (0,_parse_js__WEBPACK_IMPORTED_MODULE_0__["default"])(uuid) : uuid;
+  const v1Bytes = _v6ToV1(v6Bytes);
+  return typeof uuid === 'string' ? (0,_stringify_js__WEBPACK_IMPORTED_MODULE_1__.unsafeStringify)(v1Bytes) : v1Bytes;
+}
+
+// Do the field transformation needed for v6 -> v1
+function _v6ToV1(v6Bytes) {
+  return Uint8Array.of((v6Bytes[3] & 0x0f) << 4 | v6Bytes[4] >> 4 & 0x0f, (v6Bytes[4] & 0x0f) << 4 | (v6Bytes[5] & 0xf0) >> 4, (v6Bytes[5] & 0x0f) << 4 | v6Bytes[6] & 0x0f, v6Bytes[7], (v6Bytes[1] & 0x0f) << 4 | (v6Bytes[2] & 0xf0) >> 4, (v6Bytes[2] & 0x0f) << 4 | (v6Bytes[3] & 0xf0) >> 4, 0x10 | (v6Bytes[0] & 0xf0) >> 4, (v6Bytes[0] & 0x0f) << 4 | (v6Bytes[1] & 0xf0) >> 4, v6Bytes[8], v6Bytes[9], v6Bytes[10], v6Bytes[11], v6Bytes[12], v6Bytes[13], v6Bytes[14], v6Bytes[15]);
+}
+
+/***/ }),
+
+/***/ 77:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _rng_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(65);
+/* harmony import */ var _stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(63);
+
+
+
+/**
+ * UUID V7 - Unix Epoch time-based UUID
+ *
+ * The IETF has published RFC9562, introducing 3 new UUID versions (6,7,8). This
+ * implementation of V7 is based on the accepted, though not yet approved,
+ * revisions.
+ *
+ * RFC 9562:https://www.rfc-editor.org/rfc/rfc9562.html Universally Unique
+ * IDentifiers (UUIDs)
+
+ *
+ * Sample V7 value:
+ * https://www.rfc-editor.org/rfc/rfc9562.html#name-example-of-a-uuidv7-value
+ *
+ * Monotonic Bit Layout: RFC rfc9562.6.2 Method 1, Dedicated Counter Bits ref:
+ *     https://www.rfc-editor.org/rfc/rfc9562.html#section-6.2-5.1
+ *
+ *   0                   1                   2                   3 0 1 2 3 4 5 6
+ *   7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  |                          unix_ts_ms                           |
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  |          unix_ts_ms           |  ver  |        seq_hi         |
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  |var|               seq_low               |        rand         |
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  |                             rand                              |
+ *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *
+ * seq is a 31 bit serialized counter; comprised of 12 bit seq_hi and 19 bit
+ * seq_low, and randomly initialized upon timestamp change. 31 bit counter size
+ * was selected as any bitwise operations in node are done as _signed_ 32 bit
+ * ints. we exclude the sign bit.
+ */
+
+let _seqLow = null;
+let _seqHigh = null;
+let _msecs = 0;
+function v7(options, buf, offset) {
+  options = options || {};
+
+  // initialize buffer and pointer
+  let i = buf && offset || 0;
+  const b = buf || new Uint8Array(16);
+
+  // rnds is Uint8Array(16) filled with random bytes
+  const rnds = options.random || (options.rng || _rng_js__WEBPACK_IMPORTED_MODULE_0__["default"])();
+
+  // milliseconds since unix epoch, 1970-01-01 00:00
+  const msecs = options.msecs !== undefined ? options.msecs : Date.now();
+
+  // seq is user provided 31 bit counter
+  let seq = options.seq !== undefined ? options.seq : null;
+
+  // initialize local seq high/low parts
+  let seqHigh = _seqHigh;
+  let seqLow = _seqLow;
+
+  // check if clock has advanced and user has not provided msecs
+  if (msecs > _msecs && options.msecs === undefined) {
+    _msecs = msecs;
+
+    // unless user provided seq, reset seq parts
+    if (seq !== null) {
+      seqHigh = null;
+      seqLow = null;
+    }
+  }
+
+  // if we have a user provided seq
+  if (seq !== null) {
+    // trim provided seq to 31 bits of value, avoiding overflow
+    if (seq > 0x7fffffff) {
+      seq = 0x7fffffff;
+    }
+
+    // split provided seq into high/low parts
+    seqHigh = seq >>> 19 & 0xfff;
+    seqLow = seq & 0x7ffff;
+  }
+
+  // randomly initialize seq
+  if (seqHigh === null || seqLow === null) {
+    seqHigh = rnds[6] & 0x7f;
+    seqHigh = seqHigh << 8 | rnds[7];
+    seqLow = rnds[8] & 0x3f; // pad for var
+    seqLow = seqLow << 8 | rnds[9];
+    seqLow = seqLow << 5 | rnds[10] >>> 3;
+  }
+
+  // increment seq if within msecs window
+  if (msecs + 10000 > _msecs && seq === null) {
+    if (++seqLow > 0x7ffff) {
+      seqLow = 0;
+      if (++seqHigh > 0xfff) {
+        seqHigh = 0;
+
+        // increment internal _msecs. this allows us to continue incrementing
+        // while staying monotonic. Note, once we hit 10k milliseconds beyond system
+        // clock, we will reset breaking monotonicity (after (2^31)*10000 generations)
+        _msecs++;
+      }
+    }
+  } else {
+    // resetting; we have advanced more than
+    // 10k milliseconds beyond system clock
+    _msecs = msecs;
+  }
+  _seqHigh = seqHigh;
+  _seqLow = seqLow;
+
+  // [bytes 0-5] 48 bits of local timestamp
+  b[i++] = _msecs / 0x10000000000 & 0xff;
+  b[i++] = _msecs / 0x100000000 & 0xff;
+  b[i++] = _msecs / 0x1000000 & 0xff;
+  b[i++] = _msecs / 0x10000 & 0xff;
+  b[i++] = _msecs / 0x100 & 0xff;
+  b[i++] = _msecs & 0xff;
+
+  // [byte 6] - set 4 bits of version (7) with first 4 bits seq_hi
+  b[i++] = seqHigh >>> 4 & 0x0f | 0x70;
+
+  // [byte 7] remaining 8 bits of seq_hi
+  b[i++] = seqHigh & 0xff;
+
+  // [byte 8] - variant (2 bits), first 6 bits seq_low
+  b[i++] = seqLow >>> 13 & 0x3f | 0x80;
+
+  // [byte 9] 8 bits seq_low
+  b[i++] = seqLow >>> 5 & 0xff;
+
+  // [byte 10] remaining 5 bits seq_low, 3 bits random
+  b[i++] = seqLow << 3 & 0xff | rnds[10] & 0x07;
+
+  // [bytes 11-15] always random
+  b[i++] = rnds[11];
+  b[i++] = rnds[12];
+  b[i++] = rnds[13];
+  b[i++] = rnds[14];
+  b[i++] = rnds[15];
+  return buf || (0,_stringify_js__WEBPACK_IMPORTED_MODULE_1__.unsafeStringify)(b);
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (v7);
+
+/***/ }),
+
+/***/ 61:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _regex_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(62);
+
+function validate(uuid) {
+  return typeof uuid === 'string' && _regex_js__WEBPACK_IMPORTED_MODULE_0__["default"].test(uuid);
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (validate);
+
+/***/ }),
+
+/***/ 78:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(61);
+
+function version(uuid) {
+  if (!(0,_validate_js__WEBPACK_IMPORTED_MODULE_0__["default"])(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+  return parseInt(uuid.slice(14, 15), 16);
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (version);
+
+/***/ }),
+
+/***/ 79:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("child_process");
+
+/***/ }),
+
+/***/ 66:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:crypto");
+
 /***/ })
-/******/ 	]);
+
+/******/ 	});
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};

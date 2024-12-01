@@ -1,5 +1,5 @@
-import { SimilarSnippet } from './similarSnippets';
 import { CaretPosition } from './common';
+import { SimilarSnippet } from './similarSnippets';
 export interface SimilarSnippetsMasterHandler {
     log(...data: any[]): Promise<void>;
 }

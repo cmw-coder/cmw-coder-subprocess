@@ -3,18 +3,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const MessageProxy_1 = require("../../common/MessageProxy");
+const fs_1 = require("fs");
+const iconv_lite_1 = require("iconv-lite");
+const path_1 = __importDefault(require("path"));
+const web_tree_sitter_1 = __importDefault(require("web-tree-sitter"));
 const yargs_1 = __importDefault(require("yargs"));
 const helpers_1 = require("yargs/helpers");
 const LocalReviewHistoryManager_1 = require("../../common/LocalReviewHistoryManager");
-const ReviewInstance_1 = require("../reviewManagerProcess/ReviewInstance");
-const review_1 = require("../../types/review");
-const fs_1 = require("fs");
-const web_tree_sitter_1 = __importDefault(require("web-tree-sitter"));
-const iconv_lite_1 = require("iconv-lite");
-const common_1 = require("../../types/common");
+const MessageProxy_1 = require("../../common/MessageProxy");
 const utils_1 = require("../../common/utils");
-const path_1 = __importDefault(require("path"));
+const ReviewInstance_1 = require("../reviewManagerProcess/ReviewInstance");
+const common_1 = require("../../types/common");
+const review_1 = require("../../types/review");
 const MAX_RUNNING_REVIEW_COUNT = 10;
 const argv = (0, yargs_1.default)((0, helpers_1.hideBin)(process.argv)).argv;
 class ReviewProcess extends MessageProxy_1.MessageToMasterProxy {
