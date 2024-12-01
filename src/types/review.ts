@@ -145,7 +145,7 @@ export interface ReviewResult {
 
 export interface ReviewData {
   references: Reference[];
-  selection: SelectionData;
+  selectionData: SelectionData;
   reviewId: string;
   serverTaskId: string;
   state: ReviewState;

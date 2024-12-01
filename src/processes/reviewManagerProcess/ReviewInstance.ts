@@ -1,11 +1,12 @@
 import {
   ExtraData,
-  SelectionData,
   Feedback,
   Reference,
   ReviewData,
   ReviewResult,
   ReviewState,
+  ReviewType,
+  SelectionData,
 } from 'types/review';
 import { DateTime } from 'luxon';
 import { v4 as uuidv4 } from 'uuid';
@@ -142,23 +143,24 @@ export class ReviewInstance {
     return this.localReviewHistoryManager.saveReviewItem(reviewData);
   }
 
-  getReviewData() {
+  getReviewData(): ReviewData {
     return {
+      references: this.references,
+      selectionData: this.selectionData,
       reviewId: this.reviewId,
       serverTaskId: this.serverTaskId,
       state: this.state,
-      result: this.result,
-      references: this.references,
-      selection: this.selectionData,
+      result: this.result ?? { parsed: false, data: [], originData: '' },
       feedback: this.feedback,
       errorInfo: this.errorInfo,
       extraData: this.extraData,
+      reviewType: ReviewType.Function,
+      isRunning: this.isRunning,
       createTime: this.createTime,
       startTime: this.startTime,
       endTime: this.endTime,
       referenceTime: this.referenceTime,
-      isRunning: this.isRunning,
-    } as ReviewData;
+    };
   }
 
   async stop() {
