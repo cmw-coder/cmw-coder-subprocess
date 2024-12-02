@@ -23,10 +23,12 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
             deleted: 0,
         };
         try {
-            this.proxyFn.log('diffLine', {
+            this.proxyFn
+                .log('diffLine', {
                 text1Length: text1.length,
                 text2Length: text2.length,
-            }).catch();
+            })
+                .catch();
             this.isRunning = true;
             const a = this.dmp.diff_linesToChars_(text1, text2);
             const lineText1 = a.chars1;
@@ -39,12 +41,16 @@ class DiffProcess extends MessageProxy_1.MessageToMasterProxy {
                 const lineDiff = lineDiffs[i];
                 if (lineDiff[0] === 1) {
                     this.proxyFn.log('diffLine added', lineDiff).catch();
-                    const lines = lineDiff[1].split(/\r\n|\n/).filter(line => line.trim() !== '');
+                    const lines = lineDiff[1]
+                        .split(/\r\n|\n/)
+                        .filter((line) => line.trim() !== '');
                     result.added += lines.length;
                 }
                 if (lineDiff[0] === -1) {
                     this.proxyFn.log('diffLine deleted', lineDiff).catch();
-                    const lines = lineDiff[1].split(/\r\n|\n/).filter(line => line.trim() !== '');
+                    const lines = lineDiff[1]
+                        .split(/\r\n|\n/)
+                        .filter((line) => line.trim() !== '');
                     result.deleted += lines.length;
                 }
             }

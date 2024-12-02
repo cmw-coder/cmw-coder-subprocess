@@ -69,7 +69,10 @@ export const getAllOtherTabContents = async (
   return res;
 };
 
-export const getPositionOffset = (fileContent: string, caretPosition: CaretPosition) => {
+export const getPositionOffset = (
+  fileContent: string,
+  caretPosition: CaretPosition,
+) => {
   return (
     fileContent.split('\n').slice(0, caretPosition.line).join('\n').length +
     caretPosition.character +

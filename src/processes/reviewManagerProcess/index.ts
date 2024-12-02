@@ -174,8 +174,14 @@ class ReviewProcess
             captures[0].node.endIndex,
           ),
           range: new Selection(
-            new CaretPosition(captures[0].node.startPosition.row, captures[0].node.startPosition.column),
-            new CaretPosition(captures[0].node.endPosition.row, captures[0].node.endPosition.column)
+            new CaretPosition(
+              captures[0].node.startPosition.row,
+              captures[0].node.startPosition.column,
+            ),
+            new CaretPosition(
+              captures[0].node.endPosition.row,
+              captures[0].node.endPosition.column,
+            ),
           ),
           language: 'c',
         }),
@@ -205,7 +211,10 @@ class ReviewProcess
     }
   }
 
-  async addReview(data: { selectionData: SelectionData; extraData: ExtraData }) {
+  async addReview(data: {
+    selectionData: SelectionData;
+    extraData: ExtraData;
+  }) {
     this.isClearAll = false;
     const review = new ReviewInstance(
       data.selectionData,

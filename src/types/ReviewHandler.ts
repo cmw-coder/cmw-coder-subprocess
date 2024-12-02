@@ -33,7 +33,10 @@ export interface ReviewMasterHandler {
 }
 
 export interface ReviewChildHandler {
-  addReview(data: { selectionData: SelectionData; extraData: ExtraData }): Promise<any>;
+  addReview(data: {
+    selectionData: SelectionData;
+    extraData: ExtraData;
+  }): Promise<any>;
   reviewFile(data: { filePath: string; extraData: ExtraData }): Promise<any>;
   reviewProject(data: {
     projectDirPath: string;
